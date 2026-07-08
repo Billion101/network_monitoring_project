@@ -1,0 +1,9 @@
+# Frontend git rules
+
+node_modules/
+dist/
+dist-ssr/
+*.log
+
+# Explicitly ensure .env is tracked
+!.env

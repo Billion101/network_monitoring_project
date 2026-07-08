@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  font-family: 'Outfit', sans-serif;
+  color-scheme: dark;
+  background-color: #0b0f17;
+  color: #f3f4f6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #151d30 0%, #080b11 100%);
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for a premium look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: rgba(20, 27, 43, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(20, 27, 43, 0.6);
+  border-color: rgba(34, 197, 94, 0.2);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+}
+
+/* Neon Glows */
+.neon-glow-green {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.35);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.neon-glow-yellow {
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.35);
+  border-color: rgba(234, 179, 8, 0.6);
+}
+
+.neon-glow-red {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+/* Pulse / Animation utilities */
+@keyframes neon-pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+    border-color: rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+    border-color: rgba(34, 197, 94, 0.8);
+  }
+}
+
+.animate-neon-pulse-green {
+  animation: neon-pulse-green 2s infinite ease-in-out;
+}
+
+/* Semi-circular Gauge Custom Stylings */
+.gauge-svg {
+  transform: rotate(-180deg);
+}
+
+/* Connection lines animation */
+.connection-line {
+  stroke-dasharray: 8 4;
+  animation: flow 30s linear infinite;
+}
+
+@keyframes flow {
+  from {
+    stroke-dashoffset: 360;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

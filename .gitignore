@@ -1,0 +1,21 @@
+# NetMonitor Git Rules
+
+# Node dependencies & caches
+node_modules/
+.npm
+package-lock.json
+
+# Local builds & virtual assets
+dist/
+dist-ssr/
+*.log
+
+# Editor Settings & OS overheads
+.vscode/
+.idea/
+.DS_Store
+
+# Explicitly allow configuration .env files to be tracked in repository for simple VPS deployment
+!.env
+!backend/.env
+!frontend/.env
