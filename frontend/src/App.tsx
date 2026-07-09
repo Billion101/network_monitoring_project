@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Map as MapIcon, 
-  AlertTriangle, 
-  Network, 
-  Settings as SettingsIcon, 
-  Search, 
-  Bell, 
-  ChevronDown, 
-  Cpu, 
-  HardDrive, 
-  Activity, 
-  CheckCircle2, 
+import {
+  LayoutDashboard,
+  Map as MapIcon,
+  AlertTriangle,
+  Network,
+  Settings as SettingsIcon,
+  Search,
+  Bell,
+  ChevronDown,
+  Cpu,
+  HardDrive,
+  Activity,
+  CheckCircle2,
   Server,
   Terminal,
   Globe
@@ -51,10 +51,10 @@ const SwitchIcon = () => (
 );
 
 const PCIcon = ({ status }: { status: string }) => {
-  const colorClass = status === 'online' 
-    ? 'text-green-400 drop-shadow-[0_0_8px_#22c55e]' 
-    : status === 'warning' 
-      ? 'text-yellow-400 drop-shadow-[0_0_8px_#eab308]' 
+  const colorClass = status === 'online'
+    ? 'text-green-400 drop-shadow-[0_0_8px_#22c55e]'
+    : status === 'warning'
+      ? 'text-yellow-400 drop-shadow-[0_0_8px_#eab308]'
       : 'text-gray-500';
   return (
     <svg viewBox="0 0 24 24" className={`w-10 h-10 stroke-current ${colorClass}`} fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -117,7 +117,7 @@ function App() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('3'); // Defaults to Core Switch ID
   const [searchQuery, setSearchQuery] = useState('');
   const [alerts, setAlerts] = useState<any[]>([]);
-  const [trafficHistory, setTrafficHistory] = useState<{in: number[]; out: number[]}>({
+  const [trafficHistory, setTrafficHistory] = useState<{ in: number[]; out: number[] }>({
     in: [40, 60, 50, 75, 90],
     out: [30, 40, 35, 55, 60]
   });
@@ -138,10 +138,10 @@ function App() {
       socket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          
+
           if (message.type === 'init' || message.type === 'telemetry') {
             const { devices: devData, alerts: alertData } = message.data;
-            
+
             const mapped = devData.map((d: any) => ({
               ...d,
               id: String(d.id),
@@ -156,7 +156,7 @@ function App() {
               const maxTraffic = currentSelected.type === 'wan' ? 1500 : 1000;
               const inPct = Math.min(100, Math.round((currentSelected.trafficIn / maxTraffic) * 100));
               const outPct = Math.min(100, Math.round((currentSelected.trafficOut / (maxTraffic * 0.4)) * 100));
-              
+
               setTrafficHistory(prev => {
                 const nextIn = [...prev.in.slice(1)];
                 const nextOut = [...prev.out.slice(1)];
@@ -205,7 +205,7 @@ function App() {
           if (data && data.length > 0) {
             const currentSelected = devices.find(d => d.id === selectedDeviceId);
             const maxTraffic = currentSelected && currentSelected.type === 'wan' ? 1500 : 1000;
-            
+
             const inVals = data.map((m: any) => Math.min(100, Math.round((m.trafficIn / maxTraffic) * 100)));
             const outVals = data.map((m: any) => Math.min(100, Math.round((m.trafficOut / (maxTraffic * 0.4)) * 100)));
 
@@ -237,7 +237,7 @@ function App() {
         const memChange = (Math.random() - 0.5) * 3;
         const newCpu = Math.max(2, Math.min(98, Math.round(dev.cpuUsage + cpuChange)));
         const newMem = Math.max(5, Math.min(95, Math.round(dev.memoryUsage + memChange)));
-        
+
         let trafficInChange = (Math.random() - 0.5) * 60;
         let trafficOutChange = (Math.random() - 0.5) * 30;
         let newIn = Math.max(10, Math.round(dev.trafficIn + trafficInChange));
@@ -265,7 +265,7 @@ function App() {
       setTrafficHistory(prev => {
         const nextIn = [...prev.in.slice(1)];
         const nextOut = [...prev.out.slice(1)];
-        
+
         const selected = devices.find(d => d.id === selectedDeviceId) || devices[2];
         const maxTraffic = selected.type === 'wan' ? 1500 : 1000;
         const inPercentage = Math.round((selected.trafficIn / maxTraffic) * 100);
@@ -348,7 +348,7 @@ function App() {
 
   const radius = 80;
   const circumference = Math.PI * radius;
-  
+
   const getGaugeStrokeDashoffset = (val: number) => {
     return circumference - (val / 100) * circumference;
   };
@@ -373,20 +373,19 @@ function App() {
         {/* Glow Background */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-        
+
         {/* Login Box */}
         <div className="w-full max-w-md p-8 rounded-3xl glass-panel border border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.4)] relative z-10 mx-4">
-          
+
           {/* Mode Switcher Toggle in Login */}
           <div className="flex justify-end mb-4">
             <button
               type="button"
               onClick={() => setApiMode(prev => prev === 'real' ? 'mock' : 'real')}
-              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                apiMode === 'real'
+              className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${apiMode === 'real'
                   ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
                   : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
-              }`}
+                }`}
             >
               Mode: {apiMode === 'real' ? '🔌 Real API' : '🧪 Mock Data'}
             </button>
@@ -403,8 +402,8 @@ function App() {
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Username</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="admin"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -414,8 +413,8 @@ function App() {
 
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -458,10 +457,10 @@ function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden text-slate-100 font-sans">
-      
+
       {/* 1. Sidebar Panel */}
       <aside className="w-20 lg:w-64 glass-panel border-r border-slate-800 flex flex-col justify-between items-center lg:items-stretch py-6 select-none shrink-0 z-20">
-        
+
         {/* Brand Logo */}
         <div className="flex items-center gap-3 px-6 pb-8 border-b border-slate-800/60 w-full justify-center lg:justify-start">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-green-500 to-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse">
@@ -487,20 +486,19 @@ function App() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 relative group ${
-                  isActive 
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 relative group ${isActive
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent'
-                }`}
+                  }`}
               >
                 {/* Active side indicator */}
                 {isActive && (
                   <div className="absolute left-0 top-1/4 bottom-1/4 w-1.5 rounded-r-md bg-green-400 shadow-[0_0_8px_#22c55e]"></div>
                 )}
-                
+
                 <Icon className={`w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-green-400 drop-shadow-[0_0_6px_#22c55e]' : ''}`} />
                 <span className="hidden lg:inline font-medium text-sm">{tab.label}</span>
-                
+
                 {tab.badge && (
                   <span className="hidden lg:inline-flex ml-auto items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
                     {tab.badge}
@@ -516,12 +514,12 @@ function App() {
           <button className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 transition-colors">
             <SettingsIcon className="w-5 h-5" />
           </button>
-          
+
           <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center hover:border-slate-600 transition-colors cursor-pointer overflow-hidden group">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" 
-              alt="Avatar" 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+              alt="Avatar"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
             />
           </div>
         </div>
@@ -529,17 +527,17 @@ function App() {
 
       {/* 2. Main Content Canvas */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto z-10">
-        
+
         {/* Top Header */}
         <header className="h-20 border-b border-slate-800/50 px-6 lg:px-8 flex items-center justify-between shrink-0 glass-panel">
           <div className="flex items-center gap-4">
             <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white capitalize">
               {activeTab === 'dashboard' ? 'Network Topology' : `${activeTab} view`}
             </h1>
-            
+
             {/* Realtime API / Mock Sandbox Interactive Switcher Toggle in Header */}
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={() => {
                   const targetMode = apiMode === 'real' ? 'mock' : 'real';
                   setApiMode(targetMode);
@@ -550,15 +548,14 @@ function App() {
                     ]);
                   }
                 }}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
-                  apiMode === 'real' 
-                    ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20' 
+                className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${apiMode === 'real'
+                    ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
                     : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
-                }`}
+                  }`}
               >
                 {apiMode === 'real' ? '🔌 Real API' : '🧪 Mock Mode'}
               </button>
-              
+
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-xs text-green-400 font-medium">
                 <span className={`w-1.5 h-1.5 rounded-full ${apiMode === 'real' ? 'bg-green-400 animate-ping' : 'bg-indigo-400 animate-pulse'}`}></span>
                 {apiMode === 'real' ? 'Live Server' : 'Sandbox Active'}
@@ -567,14 +564,14 @@ function App() {
           </div>
 
           <div className="flex items-center gap-4 lg:gap-6">
-            
+
             {/* Search Box */}
             <div className="relative hidden md:block">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                 <Search className="h-4 w-4" />
               </span>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search nodes or status..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -603,7 +600,7 @@ function App() {
         {/* Tab specific rendering */}
         {activeTab === 'dashboard' ? (
           <div className="flex-1 p-4 lg:p-5 space-y-4 flex flex-col justify-between">
-            
+
             {/* Top Row: Network Metrics Summaries */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
               {[
@@ -624,10 +621,10 @@ function App() {
 
             {/* Central Network Topology Map Component */}
             <div className="flex-1 glass-panel border border-slate-800 rounded-2xl p-4 relative overflow-hidden min-h-[500px] flex items-center justify-center my-3">
-              
+
               {/* Radial Glowing Background Design */}
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.03)_0%,transparent_70%)] pointer-events-none"></div>
-              
+
               {/* Dynamic Connection SVG Overlay */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -646,7 +643,7 @@ function App() {
                 <line x1="50%" y1="56%" x2="50%" y2="68%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
                 <line x1="50%" y1="74%" x2="50%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
                 <line x1="25%" y1="80%" x2="75%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
-                
+
                 <line x1="25%" y1="80%" x2="25%" y2="85%" stroke="#10b981" strokeWidth="2" filter="url(#neon-glow-green-line)" />
                 <line x1="50%" y1="80%" x2="50%" y2="85%" stroke="#10b981" strokeWidth="2" filter="url(#neon-glow-green-line)" />
                 <line x1="75%" y1="80%" x2="75%" y2="85%" stroke="#10b981" strokeWidth="2" filter="url(#neon-glow-green-line)" />
@@ -654,62 +651,58 @@ function App() {
 
               {/* Node Overlay Elements */}
               <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-                
+
                 {/* 1. WAN (Cloud) Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('1')}
                   className={`absolute top-[8%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10`}
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '1' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '1'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <CloudIcon />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">WAN</span>
                 </div>
 
                 {/* 2. Firewall Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('2')}
                   className="absolute top-[28%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '2' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '2'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <FirewallIcon />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">Firewall</span>
                 </div>
 
                 {/* 3. Core Switch Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('3')}
                   className="absolute top-[48%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '3' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '3'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <CoreSwitchIcon />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">Core_Switch</span>
                 </div>
 
                 {/* 4. Switch Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('4')}
                   className="absolute top-[68%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '4' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '4'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <SwitchIcon />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">Switch</span>
@@ -717,15 +710,14 @@ function App() {
 
                 {/* Bottom Row - PCs */}
                 {/* 5. PC1 Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('5')}
                   className="absolute top-[85%] left-[25%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '5' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '5'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <PCIcon status={devices.find(d => d.id === '5')?.status || 'online'} />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">PC1</span>
@@ -733,15 +725,14 @@ function App() {
                 </div>
 
                 {/* 6. PC2 Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('6')}
                   className="absolute top-[85%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '6' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '6'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <PCIcon status={devices.find(d => d.id === '6')?.status || 'online'} />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">PC2</span>
@@ -749,15 +740,14 @@ function App() {
                 </div>
 
                 {/* 7. PC3 Node */}
-                <div 
+                <div
                   onClick={() => setSelectedDeviceId('7')}
                   className="absolute top-[85%] left-[75%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${
-                    selectedDeviceId === '7' 
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110' 
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '7'
+                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
                       : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                  }`}>
+                    }`}>
                     <PCIcon status={devices.find(d => d.id === '7')?.status || 'online'} />
                   </div>
                   <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">PC3</span>
@@ -787,7 +777,7 @@ function App() {
               <h2 className="text-xl font-semibold mb-6 flex items-center gap-3">
                 <AlertTriangle className="w-6 h-6 text-yellow-400" /> Active Alert Incidents
               </h2>
-              
+
               <div className="space-y-4">
                 {alerts.length === 0 ? (
                   <div className="p-8 text-center text-slate-500 font-medium">
@@ -797,13 +787,12 @@ function App() {
                   alerts.map((alert) => (
                     <div key={alert.id} className="flex items-start justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800 animate-fade-in">
                       <div className="flex gap-4">
-                        <span className={`p-2 rounded-xl shrink-0 ${
-                          alert.statusType === 'warning'
+                        <span className={`p-2 rounded-xl shrink-0 ${alert.statusType === 'warning'
                             ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
                             : alert.statusType === 'offline'
                               ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                               : 'bg-green-500/10 text-green-400 border border-green-500/20'
-                        }`}>
+                          }`}>
                           {alert.statusType === 'warning' ? (
                             <AlertTriangle className="w-5 h-5" />
                           ) : (
@@ -818,13 +807,12 @@ function App() {
                           </span>
                         </div>
                       </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        alert.statusType === 'online' 
-                          ? 'bg-green-500/10 text-green-400' 
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${alert.statusType === 'online'
+                          ? 'bg-green-500/10 text-green-400'
                           : alert.statusType === 'warning'
                             ? 'bg-yellow-500/10 text-yellow-400'
                             : 'bg-red-500/10 text-red-400'
-                      }`}>
+                        }`}>
                         {alert.statusType === 'online' ? 'Resolved' : 'Active'}
                       </span>
                     </div>
@@ -865,20 +853,18 @@ function App() {
                         <td className="py-4 px-4">{dev.cpuUsage}%</td>
                         <td className="py-4 px-4">{dev.memoryUsage}%</td>
                         <td className="py-4 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            dev.status === 'online'
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${dev.status === 'online'
                               ? 'bg-green-500/10 text-green-400'
                               : dev.status === 'warning'
                                 ? 'bg-yellow-500/10 text-yellow-400'
                                 : 'bg-red-500/10 text-red-400'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              dev.status === 'online'
+                            }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${dev.status === 'online'
                                 ? 'bg-green-400'
                                 : dev.status === 'warning'
                                   ? 'bg-yellow-400'
                                   : 'bg-red-400'
-                            }`}></span> {dev.status}
+                              }`}></span> {dev.status}
                           </span>
                         </td>
                       </tr>
@@ -923,20 +909,19 @@ function App() {
 
       {/* 3. Right Sidebar Metrics & Inspector */}
       <aside className="w-80 glass-panel border-l border-slate-800 flex flex-col p-6 shrink-0 z-20 overflow-y-auto select-none">
-        
+
         {/* Device Header Inspector Selector */}
         <div className="flex items-center justify-between pb-6 border-b border-slate-800/80 mb-6">
           <div>
             <h3 className="text-xs font-bold text-green-400 tracking-widest uppercase">Node Inspector</h3>
             <h2 className="text-lg font-bold text-white mt-1 flex items-center gap-2">
               {selectedDevice.name}
-              <span className={`w-2.5 h-2.5 rounded-full ${
-                selectedDevice.status === 'online'
+              <span className={`w-2.5 h-2.5 rounded-full ${selectedDevice.status === 'online'
                   ? 'bg-green-400 shadow-[0_0_8px_#22c55e]'
                   : selectedDevice.status === 'warning'
                     ? 'bg-yellow-400 shadow-[0_0_8px_#eab308]'
                     : 'bg-red-400 shadow-[0_0_8px_#ef4444]'
-              }`}></span>
+                }`}></span>
             </h2>
           </div>
           <span className="text-[10px] font-mono text-slate-500 bg-slate-900/80 border border-slate-800 px-2 py-1 rounded-md">
@@ -946,13 +931,13 @@ function App() {
 
         {/* Metric Gauges Row */}
         <div className="space-y-6">
-          
+
           {/* CPU Usage Semi-Circle Gauge with Needle */}
           <div className="glass-panel border border-slate-800 rounded-2xl p-5 relative overflow-hidden flex flex-col items-center">
             <span className="text-xs font-semibold text-slate-400 self-start mb-2 tracking-wide flex items-center gap-1.5">
               <Cpu className="w-4 h-4 text-green-400" /> CPU Usage
             </span>
-            
+
             <div className="relative w-full flex flex-col items-center justify-center pt-2">
               <svg className="w-44 h-24" viewBox="0 0 180 100">
                 <defs>
@@ -964,38 +949,38 @@ function App() {
                 </defs>
 
                 {/* Base Gauge Arch */}
-                <path 
-                  d="M 15 90 A 75 75 0 0 1 165 90" 
-                  fill="none" 
-                  stroke="#1e293b" 
-                  strokeWidth="12" 
-                  strokeLinecap="round" 
+                <path
+                  d="M 15 90 A 75 75 0 0 1 165 90"
+                  fill="none"
+                  stroke="#1e293b"
+                  strokeWidth="12"
+                  strokeLinecap="round"
                 />
 
                 {/* Active Filled Arch */}
-                <path 
-                  d="M 15 90 A 75 75 0 0 1 165 90" 
-                  fill="none" 
-                  stroke="url(#cpuGrad)" 
-                  strokeWidth="12" 
-                  strokeLinecap="round" 
+                <path
+                  d="M 15 90 A 75 75 0 0 1 165 90"
+                  fill="none"
+                  stroke="url(#cpuGrad)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={getGaugeStrokeDashoffset(selectedDevice.cpuUsage)}
                   className="transition-all duration-700 ease-out"
                 />
 
                 {/* Dial Indicator Needle */}
-                <line 
-                  x1="90" 
-                  y1="90" 
-                  x2={needleCoords.x2} 
-                  y2={needleCoords.y2} 
-                  stroke="#ffffff" 
-                  strokeWidth="2.5" 
+                <line
+                  x1="90"
+                  y1="90"
+                  x2={needleCoords.x2}
+                  y2={needleCoords.y2}
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   className="transition-all duration-700 ease-out"
                 />
-                
+
                 {/* Central Needle Pin */}
                 <circle cx="90" cy="90" r="6" fill="#151d30" stroke="#ffffff" strokeWidth="2" />
               </svg>
@@ -1013,7 +998,7 @@ function App() {
             <span className="text-xs font-semibold text-slate-400 self-start mb-2 tracking-wide flex items-center gap-1.5">
               <HardDrive className="w-4 h-4 text-green-400" /> Memory Usage
             </span>
-            
+
             <div className="relative w-full flex flex-col items-center justify-center pt-2">
               <svg className="w-44 h-24" viewBox="0 0 180 100">
                 <defs>
@@ -1024,21 +1009,21 @@ function App() {
                 </defs>
 
                 {/* Base Gauge Arch */}
-                <path 
-                  d="M 15 90 A 75 75 0 0 1 165 90" 
-                  fill="none" 
-                  stroke="#1e293b" 
-                  strokeWidth="12" 
-                  strokeLinecap="round" 
+                <path
+                  d="M 15 90 A 75 75 0 0 1 165 90"
+                  fill="none"
+                  stroke="#1e293b"
+                  strokeWidth="12"
+                  strokeLinecap="round"
                 />
 
                 {/* Active Filled Arch */}
-                <path 
-                  d="M 15 90 A 75 75 0 0 1 165 90" 
-                  fill="none" 
-                  stroke="url(#memGrad)" 
-                  strokeWidth="12" 
-                  strokeLinecap="round" 
+                <path
+                  d="M 15 90 A 75 75 0 0 1 165 90"
+                  fill="none"
+                  stroke="url(#memGrad)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={getGaugeStrokeDashoffset(selectedDevice.memoryUsage)}
                   className="transition-all duration-700 ease-out"
@@ -1061,7 +1046,7 @@ function App() {
             <span className="text-xs font-semibold text-slate-400 mb-4 tracking-wide flex items-center gap-1.5">
               <Activity className="w-4 h-4 text-green-400" /> Network Traffic
             </span>
-            
+
             <div className="space-y-1 mb-4">
               <div className="flex justify-between text-xs font-medium">
                 <span className="text-slate-400">In:</span>
@@ -1075,14 +1060,14 @@ function App() {
 
             {/* Glowing Charts layout */}
             <div className="grid grid-cols-2 gap-4 h-24 mt-2">
-              
+
               {/* In Traffic Bars */}
               <div className="flex flex-col justify-end items-center h-full gap-2 relative bg-slate-950/20 border border-slate-900/60 rounded-xl p-2">
                 <div className="flex items-end justify-center w-full gap-1 h-14">
                   {trafficHistory.in.map((val, idx) => (
-                    <div 
-                      key={idx} 
-                      style={{ height: `${Math.max(5, val)}%` }} 
+                    <div
+                      key={idx}
+                      style={{ height: `${Math.max(5, val)}%` }}
                       className="w-1.5 rounded-full bg-gradient-to-t from-green-600 to-green-400 shadow-[0_0_8px_rgba(34,197,94,0.3)] transition-all duration-500 relative"
                     >
                       {idx === 2 && (
@@ -1100,9 +1085,9 @@ function App() {
               <div className="flex flex-col justify-end items-center h-full gap-2 relative bg-slate-950/20 border border-slate-900/60 rounded-xl p-2">
                 <div className="flex items-end justify-center w-full gap-1 h-14">
                   {trafficHistory.out.map((val, idx) => (
-                    <div 
-                      key={idx} 
-                      style={{ height: `${Math.max(5, val)}%` }} 
+                    <div
+                      key={idx}
+                      style={{ height: `${Math.max(5, val)}%` }}
                       className="w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-500 relative"
                     >
                       {idx === 2 && (
@@ -1124,7 +1109,7 @@ function App() {
             <h4 className="font-semibold text-slate-300 flex items-center gap-1">
               <Terminal className="w-3.5 h-3.5 text-slate-400" /> Device Telemetry Logs
             </h4>
-            
+
             <div className="space-y-2 border-t border-slate-800/80 pt-3 text-slate-400 font-mono">
               <div className="flex justify-between"><span className="text-slate-500">MAC Address:</span> <span>{selectedDevice.macAddress}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Uptime:</span> <span>{selectedDevice.uptime}</span></div>
