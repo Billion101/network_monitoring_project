@@ -90,17 +90,30 @@ const calculateUptime = (lastBootTimeStr: string) => {
   return `${d}d ${h}h ${m}m`;
 };
 
-// Configuration mappings from .env variables or dynamic window location fallback (for VPS public IP deployments)
+// Configuration mappings from .env variables or dynamic window location (for VPS public IP deployments)
 const DEFAULT_API_MODE = import.meta.env.VITE_API_MODE || 'real';
-const getBackendHost = () => {
+const getBackendUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
   if (typeof window !== 'undefined' && window.location) {
-    return window.location.hostname;
+    const hostname = window.location.hostname;
+    if (!envUrl || envUrl.includes('localhost')) {
+      return `http://${hostname}:5000/api`;
+    }
   }
-  return 'localhost';
+  return envUrl || 'http://localhost:5000/api';
 };
-const backendHost = getBackendHost();
-const API_BASE = import.meta.env.VITE_API_URL || `http://${backendHost}:5000/api`;
-const WS_BASE = import.meta.env.VITE_WS_URL || `ws://${backendHost}:5000`;
+const getWsUrl = () => {
+  const envUrl = import.meta.env.VITE_WS_URL;
+  if (typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname;
+    if (!envUrl || envUrl.includes('localhost')) {
+      return `ws://${hostname}:5000`;
+    }
+  }
+  return envUrl || 'ws://localhost:5000';
+};
+const API_BASE = getBackendUrl();
+const WS_BASE = getWsUrl();
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -383,8 +396,8 @@ function App() {
               type="button"
               onClick={() => setApiMode(prev => prev === 'real' ? 'mock' : 'real')}
               className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${apiMode === 'real'
-                  ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-                  : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
+                : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
                 }`}
             >
               Mode: {apiMode === 'real' ? '🔌 Real API' : '🧪 Mock Data'}
@@ -487,8 +500,8 @@ function App() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 relative group ${isActive
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent'
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30 border border-transparent'
                   }`}
               >
                 {/* Active side indicator */}
@@ -549,8 +562,8 @@ function App() {
                   }
                 }}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${apiMode === 'real'
-                    ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-                    : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                  ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
+                  : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
                   }`}
               >
                 {apiMode === 'real' ? '🔌 Real API' : '🧪 Mock Mode'}
@@ -658,8 +671,8 @@ function App() {
                   className={`absolute top-[8%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10`}
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '1'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <CloudIcon />
                   </div>
@@ -672,8 +685,8 @@ function App() {
                   className="absolute top-[28%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '2'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <FirewallIcon />
                   </div>
@@ -686,8 +699,8 @@ function App() {
                   className="absolute top-[48%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '3'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <CoreSwitchIcon />
                   </div>
@@ -700,8 +713,8 @@ function App() {
                   className="absolute top-[68%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '4'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <SwitchIcon />
                   </div>
@@ -715,8 +728,8 @@ function App() {
                   className="absolute top-[85%] left-[25%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '5'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <PCIcon status={devices.find(d => d.id === '5')?.status || 'online'} />
                   </div>
@@ -730,8 +743,8 @@ function App() {
                   className="absolute top-[85%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '6'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <PCIcon status={devices.find(d => d.id === '6')?.status || 'online'} />
                   </div>
@@ -745,8 +758,8 @@ function App() {
                   className="absolute top-[85%] left-[75%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '7'
-                      ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                      : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
                     }`}>
                     <PCIcon status={devices.find(d => d.id === '7')?.status || 'online'} />
                   </div>
@@ -788,10 +801,10 @@ function App() {
                     <div key={alert.id} className="flex items-start justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800 animate-fade-in">
                       <div className="flex gap-4">
                         <span className={`p-2 rounded-xl shrink-0 ${alert.statusType === 'warning'
-                            ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-                            : alert.statusType === 'offline'
-                              ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                              : 'bg-green-500/10 text-green-400 border border-green-500/20'
+                          ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                          : alert.statusType === 'offline'
+                            ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            : 'bg-green-500/10 text-green-400 border border-green-500/20'
                           }`}>
                           {alert.statusType === 'warning' ? (
                             <AlertTriangle className="w-5 h-5" />
@@ -808,10 +821,10 @@ function App() {
                         </div>
                       </div>
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${alert.statusType === 'online'
-                          ? 'bg-green-500/10 text-green-400'
-                          : alert.statusType === 'warning'
-                            ? 'bg-yellow-500/10 text-yellow-400'
-                            : 'bg-red-500/10 text-red-400'
+                        ? 'bg-green-500/10 text-green-400'
+                        : alert.statusType === 'warning'
+                          ? 'bg-yellow-500/10 text-yellow-400'
+                          : 'bg-red-500/10 text-red-400'
                         }`}>
                         {alert.statusType === 'online' ? 'Resolved' : 'Active'}
                       </span>
@@ -854,16 +867,16 @@ function App() {
                         <td className="py-4 px-4">{dev.memoryUsage}%</td>
                         <td className="py-4 px-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${dev.status === 'online'
-                              ? 'bg-green-500/10 text-green-400'
-                              : dev.status === 'warning'
-                                ? 'bg-yellow-500/10 text-yellow-400'
-                                : 'bg-red-500/10 text-red-400'
+                            ? 'bg-green-500/10 text-green-400'
+                            : dev.status === 'warning'
+                              ? 'bg-yellow-500/10 text-yellow-400'
+                              : 'bg-red-500/10 text-red-400'
                             }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${dev.status === 'online'
-                                ? 'bg-green-400'
-                                : dev.status === 'warning'
-                                  ? 'bg-yellow-400'
-                                  : 'bg-red-400'
+                              ? 'bg-green-400'
+                              : dev.status === 'warning'
+                                ? 'bg-yellow-400'
+                                : 'bg-red-400'
                               }`}></span> {dev.status}
                           </span>
                         </td>
@@ -917,10 +930,10 @@ function App() {
             <h2 className="text-lg font-bold text-white mt-1 flex items-center gap-2">
               {selectedDevice.name}
               <span className={`w-2.5 h-2.5 rounded-full ${selectedDevice.status === 'online'
-                  ? 'bg-green-400 shadow-[0_0_8px_#22c55e]'
-                  : selectedDevice.status === 'warning'
-                    ? 'bg-yellow-400 shadow-[0_0_8px_#eab308]'
-                    : 'bg-red-400 shadow-[0_0_8px_#ef4444]'
+                ? 'bg-green-400 shadow-[0_0_8px_#22c55e]'
+                : selectedDevice.status === 'warning'
+                  ? 'bg-yellow-400 shadow-[0_0_8px_#eab308]'
+                  : 'bg-red-400 shadow-[0_0_8px_#ef4444]'
                 }`}></span>
             </h2>
           </div>
