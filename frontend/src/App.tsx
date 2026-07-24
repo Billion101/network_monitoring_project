@@ -7,7 +7,6 @@ import {
   Settings as SettingsIcon,
   Search,
   Bell,
-  ChevronDown,
   Cpu,
   HardDrive,
   Activity,
@@ -116,11 +115,18 @@ const API_BASE = getBackendUrl();
 const WS_BASE = getWsUrl();
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('netmonitor_authenticated') === 'true';
+  });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('netmonitor_authenticated');
+    setIsAuthenticated(false);
+  };
 
   // Toggle state to switch between real database API mode and local mockup sandbox mode
   const [apiMode, setApiMode] = useState<'real' | 'mock'>(DEFAULT_API_MODE as 'real' | 'mock');
@@ -312,6 +318,7 @@ function App() {
       setTimeout(() => {
         setIsLoggingIn(false);
         if (username.toLowerCase() === 'admin' && password === 'admin') {
+          localStorage.setItem('netmonitor_authenticated', 'true');
           setIsAuthenticated(true);
           // Set mock alerts on boot
           setAlerts([
@@ -334,6 +341,7 @@ function App() {
       setIsLoggingIn(false);
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem('netmonitor_authenticated', 'true');
         setIsAuthenticated(true);
       } else {
         setLoginError(data.error || 'Access Denied. Check credentials.');
@@ -598,13 +606,18 @@ function App() {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_#22c55e]"></span>
             </button>
 
-            {/* User Dropdown */}
-            <div className="flex items-center gap-2 pl-4 border-l border-slate-800/80 cursor-pointer group">
+            {/* User Dropdown / Logout */}
+            <div className="flex items-center gap-3 pl-4 border-l border-slate-800/80">
               <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 font-semibold text-sm flex items-center justify-center">
                 AD
               </div>
-              <span className="hidden sm:inline text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">User info</span>
-              <ChevronDown className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors" />
+              <span className="hidden sm:inline text-sm font-semibold text-slate-300">Admin</span>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-2.5 py-1 rounded-lg transition-colors ml-1 font-medium"
+              >
+                Log Out
+              </button>
             </div>
 
           </div>
