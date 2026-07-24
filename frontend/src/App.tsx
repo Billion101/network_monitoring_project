@@ -131,7 +131,7 @@ function App() {
   // Toggle state to switch between real database API mode and local mockup sandbox mode
   const [apiMode, setApiMode] = useState<'real' | 'mock'>(DEFAULT_API_MODE as 'real' | 'mock');
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'map' | 'alerts' | 'nodes' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'alerts' | 'nodes' | 'settings'>('dashboard');
   const [devices, setDevices] = useState<NetworkDevice[]>(INITIAL_DEVICES);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('3'); // Defaults to Core Switch ID
   const [searchQuery, setSearchQuery] = useState('');
@@ -522,7 +522,6 @@ function App() {
         <nav className="flex-1 w-full px-3 py-6 space-y-2">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'map', label: 'Map', icon: MapIcon },
             { id: 'alerts', label: 'Alerts', icon: AlertTriangle, badge: summary.warning > 0 ? summary.warning : undefined },
             { id: 'nodes', label: 'Nodes', icon: Network },
             { id: 'settings', label: 'Settings', icon: SettingsIcon },
@@ -809,19 +808,6 @@ function App() {
               </div>
             </div>
 
-          </div>
-        ) : activeTab === 'map' ? (
-          <div className="flex-1 p-6 lg:p-8 flex items-center justify-center">
-            <div className="glass-panel border border-slate-800 rounded-3xl p-8 max-w-2xl text-center space-y-6">
-              <Globe className="w-16 h-16 text-indigo-400 mx-auto animate-spin" style={{ animationDuration: '20s' }} />
-              <h2 className="text-2xl font-bold">Network Geographic Map</h2>
-              <p className="text-slate-400 max-w-md">
-                Geographic location services of primary servers, office gateways and remote user endpoints mapped onto real-time geographic locations.
-              </p>
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-semibold max-w-xs mx-auto">
-                📍 Head office: Bangkok, TH
-              </div>
-            </div>
           </div>
         ) : activeTab === 'alerts' ? (
           <div className="flex-1 p-6 lg:p-8 space-y-6">
