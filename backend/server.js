@@ -102,7 +102,13 @@ const runTelemetryLoop = async () => {
         mem = snmpResult.data.mem;
         latency = snmpResult.data.latency || 1;
         status = snmpResult.data.status || 'online';
-        console.log(`[SNMP POLLED REAL] Device ${dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms`);
+
+        // Auto-sync real hostname from SNMP if returned (e.g. 'Core_switch')
+        if (snmpResult.data.sysName) {
+          await DeviceModel.updateDeviceName(dev.id, snmpResult.data.sysName);
+        }
+
+        console.log(`[SNMP POLLED REAL] Device ${snmpResult.data.sysName || dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms`);
       } else {
         if (process.env.ENABLE_SIMULATOR === 'true') {
           // Fallback simulation metrics if simulator flag is enabled

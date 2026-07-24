@@ -59,6 +59,16 @@ const DeviceModel = {
     `;
     const result = await db.query(queryText, [devId, status, responseTime, cpu, memory, trafficIn, trafficOut]);
     return result.rows[0];
+  },
+
+  updateDeviceName: async (devId, realSysName) => {
+    if (!realSysName) return;
+    const queryText = `
+      UPDATE devices 
+      SET dev_name = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE dev_id = $2 AND dev_name != $1
+    `;
+    await db.query(queryText, [realSysName, devId]);
   }
 };
 
