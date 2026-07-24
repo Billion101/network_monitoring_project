@@ -10,6 +10,8 @@ const logRoutes = require('./routes/logRoutes');
 
 const DeviceModel = require('./models/deviceModel');
 const LogModel = require('./models/logModel');
+const { pollDeviceMetrics } = require('./services/snmpService');
+const { initSyslogServer } = require('./services/syslogService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,7 +70,7 @@ wss.on('connection', async (ws) => {
   });
 });
 
-// Telemetry baselines matching type categories
+// Telemetry baselines matching type categories (used as fallback or for simulation)
 const BASELINES = {
   wan: { cpu: 12, mem: 25, latency: 5, trafficIn: 1200, trafficOut: 450 },
   firewall: { cpu: 18, mem: 42, latency: 1, trafficIn: 1195, trafficOut: 448 },
@@ -77,25 +79,39 @@ const BASELINES = {
   pc: { cpu: 20, mem: 35, latency: 3, trafficIn: 280, trafficOut: 110 }
 };
 
-// Periodic simulator loop checking and updating database
-const runTelemetrySimulation = async () => {
+// Periodic telemetry loop polling real devices via SNMP with simulation fallback
+const runTelemetryLoop = async () => {
   try {
     const devicesList = await DeviceModel.getAllDevices();
     
     for (const dev of devicesList) {
       const base = BASELINES[dev.type] || { cpu: 20, mem: 30, latency: 5, trafficIn: 200, trafficOut: 100 };
+      let cpu, mem, status = 'online';
+
+      // 1. Try polling real device via SNMP v2c
+      const snmpResult = await pollDeviceMetrics(dev.ipAddress);
       
-      const cpu = Math.max(2, Math.min(98, Math.round(base.cpu + (Math.random() - 0.5) * 15)));
-      const mem = Math.max(5, Math.min(95, Math.round(base.mem + (Math.random() - 0.5) * 8)));
+      if (snmpResult.success && snmpResult.data) {
+        // Real SNMP metrics collected
+        cpu = snmpResult.data.cpu;
+        mem = snmpResult.data.mem;
+        status = snmpResult.data.status || 'online';
+        console.log(`[SNMP POLLED REAL] Device ${dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%`);
+      } else {
+        // Fallback simulation metrics if device is unreachable or simulator flag active
+        cpu = Math.max(2, Math.min(98, Math.round(base.cpu + (Math.random() - 0.5) * 15)));
+        mem = Math.max(5, Math.min(95, Math.round(base.mem + (Math.random() - 0.5) * 8)));
+      }
+
       const latency = Math.max(1, Math.round(base.latency + (Math.random() - 0.5) * 3));
       const trafficIn = Math.max(10, Math.round(base.trafficIn + (Math.random() - 0.5) * 150));
       const trafficOut = Math.max(5, Math.round(base.trafficOut + (Math.random() - 0.5) * 50));
 
       // Append health telemetry status log entry
-      await DeviceModel.insertStatusLog(dev.id, 'online', latency, cpu, mem, trafficIn, trafficOut);
+      await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
 
-      // Randomly trigger syslog alerts on Firewall / WAN gateway
-      if (Math.random() < 0.15) {
+      // In simulation mode, randomly generate background syslogs
+      if (process.env.ENABLE_SIMULATOR === 'true' && Math.random() < 0.1) {
         const facilities = ['system', 'daemon', 'auth', 'local0'];
         const severities = ['info', 'notice', 'warning'];
         const facility = facilities[Math.floor(Math.random() * facilities.length)];
@@ -125,7 +141,7 @@ const runTelemetrySimulation = async () => {
     });
 
   } catch (error) {
-    console.error('Background telemetry simulation worker error:', error);
+    console.error('Background telemetry poller worker error:', error);
   }
 };
 
@@ -134,6 +150,12 @@ server.listen(PORT, () => {
   console.log(`NetMonitor Combined Server running on port ${PORT}`);
   console.log(`WebSocket Endpoint listening at: ws://localhost:${PORT}`);
   
-  // Launch periodic simulation checks (every 5 seconds)
-  setInterval(runTelemetrySimulation, 5000);
+  // Launch UDP Syslog Receiver on port 514 (or SYSLOG_PORT env)
+  initSyslogServer(process.env.SYSLOG_PORT || 514, (event) => {
+    broadcast(event);
+  });
+
+  // Launch periodic telemetry polling loop (every 5 seconds)
+  setInterval(runTelemetryLoop, 5000);
 });
+
