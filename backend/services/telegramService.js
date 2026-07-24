@@ -2,7 +2,7 @@ const https = require('https');
 
 // Cooldown map per device IP (15-minute cooldown to prevent notification spam)
 const telegramCooldownMap = new Map();
-const COOLDOWN_MS = 15 * 60 * 1000;
+const COOLDOWN_MS = 1 * 60 * 1000; // 1 minute cooldown per device alert
 
 /**
  * Send Telegram Alert Message via Telegram Bot API
@@ -14,7 +14,7 @@ const sendTelegramAlert = async ({ deviceName, ipAddress, status, message, cpu =
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
     if (!botToken || !chatId) {
-      // Skipped if credentials aren't set yet
+      console.warn(`[TELEGRAM WARN] Cannot send Telegram alert for ${deviceName}: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in .env`);
       return { success: false, reason: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in .env' };
     }
 
