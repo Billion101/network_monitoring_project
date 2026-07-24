@@ -132,7 +132,7 @@ const runTelemetryLoop = async () => {
       // Append health telemetry status log entry
       await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
 
-      // Trigger Telegram notification if device is offline
+      // Trigger Telegram notification if device is offline or high usage
       if (status === 'offline') {
         sendTelegramAlert({
           deviceName: dev.name,
@@ -141,6 +141,15 @@ const runTelemetryLoop = async () => {
           message: 'Device ping & SNMP polling timed out over IPsec VPN tunnel',
           cpu: 0,
           mem: 0
+        }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
+      } else if (cpu > 85 || mem > 85) {
+        sendTelegramAlert({
+          deviceName: dev.name,
+          ipAddress: dev.ipAddress,
+          status: 'warning',
+          message: `High Resource Threshold Exceeded (CPU: ${cpu}%, MEM: ${mem}%)`,
+          cpu,
+          mem
         }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
       }
 
