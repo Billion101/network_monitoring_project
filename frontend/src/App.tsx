@@ -63,15 +63,15 @@ const PCIcon = ({ status }: { status: string }) => {
   );
 };
 
-// Default setup values used before API completes loading
+// Default setup values used as placeholders while API loads
 const INITIAL_DEVICES: NetworkDevice[] = [
-  { id: '1', name: 'WAN Link', type: 'wan', status: 'online', ipAddress: '8.8.8.8', macAddress: '00:0A:95:9D:68:16', uptime: '14d 6h 32m', cpuUsage: 12, memoryUsage: 25, trafficIn: 1200, trafficOut: 450, latency: 5, description: 'External Gateway Connection (Google Primary DNS Link)' },
-  { id: '2', name: 'Firewall Edge', type: 'firewall', status: 'online', ipAddress: '192.168.1.1', macAddress: '00:14:22:01:23:45', uptime: '14d 6h 30m', cpuUsage: 18, memoryUsage: 42, trafficIn: 1195, trafficOut: 448, latency: 1, description: 'Corporate Edge Threat Management Gateway (pfSense Enterprise)' },
-  { id: '3', name: 'Core Switch', type: 'core_switch', status: 'online', ipAddress: '192.168.1.2', macAddress: '3C:5A:B4:EF:01:A2', uptime: '45d 12h 15m', cpuUsage: 28, memoryUsage: 35, trafficIn: 1190, trafficOut: 445, latency: 1, description: 'Backbone L3 Core Switch (Cisco Catalyst 9300)' },
-  { id: '4', name: 'Distribution Switch Floor 1', type: 'switch', status: 'online', ipAddress: '192.168.1.3', macAddress: '70:69:79:AB:CD:EF', uptime: '9d 2h 44m', cpuUsage: 8, memoryUsage: 15, trafficIn: 850, trafficOut: 320, latency: 2, description: 'Floor 1 Distribution Switch (Ubiquiti UniFi Pro 24)' },
-  { id: '5', name: 'PC-Workstation 1', type: 'pc', status: 'online', ipAddress: '192.168.1.10', macAddress: 'F4:F2:6D:E1:92:03', uptime: '3d 8h 12m', cpuUsage: 45, memoryUsage: 62, trafficIn: 450, trafficOut: 120, latency: 3, description: 'Development Workstation (macOS, Xcode + Docker workloads)' },
-  { id: '6', name: 'PC-Workstation 2', type: 'pc', status: 'online', ipAddress: '192.168.1.11', macAddress: 'F4:F2:6D:E1:92:04', uptime: '1d 4h 50m', cpuUsage: 15, memoryUsage: 32, trafficIn: 210, trafficOut: 90, latency: 2, description: 'Finance Workstation (Windows 11 Enterprise)' },
-  { id: '7', name: 'PC-Workstation 3', type: 'pc', status: 'online', ipAddress: '192.168.1.12', macAddress: 'F4:F2:6D:E1:92:05', uptime: '5d 11h 22m', cpuUsage: 5, memoryUsage: 18, trafficIn: 190, trafficOut: 110, latency: 4, description: 'Reception Kiosk Terminal (ChromeOS Web App Client)' }
+  { id: '1', name: 'WAN Gateway', type: 'wan', status: 'offline', ipAddress: '8.8.8.8', macAddress: '00:0A:95:9D:68:16', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'External Gateway Connection' },
+  { id: '2', name: 'Cisco Firewall', type: 'firewall', status: 'offline', ipAddress: '192.168.100.1', macAddress: '00:14:22:01:23:45', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Perimeter Firewall Node' },
+  { id: '3', name: 'Core Switch', type: 'core_switch', status: 'offline', ipAddress: '192.168.100.2', macAddress: '3C:5A:B4:EF:01:A2', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Backbone L3 Core Switch' },
+  { id: '4', name: 'Access Switch', type: 'switch', status: 'offline', ipAddress: '192.168.10.252', macAddress: '70:69:79:AB:CD:EF', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Access Layer Switch' },
+  { id: '5', name: 'PC1', type: 'pc', status: 'offline', ipAddress: '192.168.10.10', macAddress: 'F4:F2:6D:E1:92:03', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 10 Operator Client PC' },
+  { id: '6', name: 'PC2', type: 'pc', status: 'offline', ipAddress: '192.168.20.10', macAddress: 'F4:F2:6D:E1:92:04', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 20 Finance Client PC' },
+  { id: '7', name: 'PC3', type: 'pc', status: 'offline', ipAddress: '192.168.30.10', macAddress: 'F4:F2:6D:E1:92:05', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 30 Frontdesk Kiosk PC' }
 ];
 
 const calculateUptime = (lastBootTimeStr: string) => {
@@ -137,11 +137,37 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [alerts, setAlerts] = useState<any[]>([]);
   const [trafficHistory, setTrafficHistory] = useState<{ in: number[]; out: number[] }>({
-    in: [40, 60, 50, 75, 90],
-    out: [30, 40, 35, 55, 60]
+    in: [0, 0, 0, 0, 0],
+    out: [0, 0, 0, 0, 0]
   });
 
   const selectedDevice = devices.find(d => d.id === selectedDeviceId) || devices[2];
+
+  // Fetch real device list immediately on mount via REST API
+  useEffect(() => {
+    if (!isAuthenticated || apiMode !== 'real') return;
+
+    const fetchRealDevicesImmediate = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/devices`);
+        if (res.ok) {
+          const devData = await res.json();
+          if (devData && Array.isArray(devData)) {
+            const mapped = devData.map((d: any) => ({
+              ...d,
+              id: String(d.id),
+              uptime: calculateUptime(d.lastBootTime)
+            }));
+            setDevices(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching initial real devices REST:', err);
+      }
+    };
+
+    fetchRealDevicesImmediate();
+  }, [isAuthenticated, apiMode]);
 
   // 1. Establish WebSocket Connection for real-time telemetry & alerts (REAL API mode)
   useEffect(() => {
