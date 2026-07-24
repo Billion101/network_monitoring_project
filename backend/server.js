@@ -12,6 +12,7 @@ const DeviceModel = require('./models/deviceModel');
 const LogModel = require('./models/logModel');
 const { pollDeviceMetrics } = require('./services/snmpService');
 const { initSyslogServer } = require('./services/syslogService');
+const { sendTelegramAlert } = require('./services/telegramService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,7 +50,7 @@ const broadcast = (data) => {
 // WebSocket Client Connection Listener
 wss.on('connection', async (ws) => {
   console.log('New WebSocket client connected.');
-  
+
   // Immediately dispatch initial snapshot of devices and alerts
   try {
     const devices = await DeviceModel.getAllDevices();
@@ -83,7 +84,7 @@ const BASELINES = {
 const runTelemetryLoop = async () => {
   try {
     const devicesList = await DeviceModel.getAllDevices();
-    
+
     for (const dev of devicesList) {
       const base = BASELINES[dev.type] || { cpu: 20, mem: 30, latency: 5, trafficIn: 200, trafficOut: 100 };
       let cpu = 0;
@@ -95,7 +96,7 @@ const runTelemetryLoop = async () => {
 
       // 1. Try polling real device via SNMP v2c
       const snmpResult = await pollDeviceMetrics(dev.ipAddress);
-      
+
       if (snmpResult.success && snmpResult.data) {
         // Real SNMP metrics collected
         cpu = snmpResult.data.cpu;
@@ -131,19 +132,31 @@ const runTelemetryLoop = async () => {
       // Append health telemetry status log entry
       await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
 
+      // Trigger Telegram notification if device is offline
+      if (status === 'offline') {
+        sendTelegramAlert({
+          deviceName: dev.name,
+          ipAddress: dev.ipAddress,
+          status: 'offline',
+          message: 'Device ping & SNMP polling timed out over IPsec VPN tunnel',
+          cpu: 0,
+          mem: 0
+        }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
+      }
+
       // In simulation mode, randomly generate background syslogs
       if (process.env.ENABLE_SIMULATOR === 'true' && Math.random() < 0.1) {
         const facilities = ['system', 'daemon', 'auth', 'local0'];
         const severities = ['info', 'notice', 'warning'];
         const facility = facilities[Math.floor(Math.random() * facilities.length)];
         const severity = severities[Math.floor(Math.random() * severities.length)];
-        
+
         const logsMap = {
           info: `Routine health parameters verified. Latency: ${latency}ms, CPU: ${cpu}%.`,
           notice: `Client traffic throughput checks complete. In: ${trafficIn} Mbps, Out: ${trafficOut} Mbps.`,
           warning: `Minor latency drift detected on dev port channel connection.`
         };
-        
+
         await LogModel.insertSyslog(dev.id, facility, severity, logsMap[severity]);
       }
     }
@@ -151,7 +164,7 @@ const runTelemetryLoop = async () => {
     // Load fresh data sets to broadcast
     const freshDevices = await DeviceModel.getAllDevices();
     const freshAlerts = await LogModel.getAlertHistory(15);
-    
+
     // Broadcast live update payload to all active browser clients via WebSocket
     broadcast({
       type: 'telemetry',
@@ -170,7 +183,7 @@ const runTelemetryLoop = async () => {
 server.listen(PORT, () => {
   console.log(`NetMonitor Combined Server running on port ${PORT}`);
   console.log(`WebSocket Endpoint listening at: ws://localhost:${PORT}`);
-  
+
   // Launch UDP Syslog Receiver on port 514 (or SYSLOG_PORT env)
   initSyslogServer(process.env.SYSLOG_PORT || 514, (event) => {
     broadcast(event);
