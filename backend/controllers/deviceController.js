@@ -15,7 +15,7 @@ const DeviceController = {
     try {
       const { id } = req.params;
       const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-      
+
       const metrics = await DeviceModel.getDeviceMetricsHistory(id, limit);
       return res.json(metrics);
     } catch (error) {

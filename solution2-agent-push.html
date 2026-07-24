@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solution 2 — Agent Push Setup Guide | NetMonitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#050811; --bg-card:#0d1117; --bg-card2:#111827;
+      --border:#1e2a3a; --border-light:#243447;
+      --green:#22c55e; --gdim:rgba(34,197,94,0.12);
+      --blue:#3b82f6;  --bdim:rgba(59,130,246,0.12);
+      --purple:#a855f7;--pdim:rgba(168,85,247,0.12);
+      --yellow:#eab308;--ydim:rgba(234,179,8,0.12);
+      --orange:#f97316;--odim:rgba(249,115,22,0.12);
+      --teal:#14b8a6;  --tdim:rgba(20,184,166,0.12);
+      --red:#ef4444;   --rdim:rgba(239,68,68,0.12);
+      --text:#e2e8f0; --muted:#64748b; --dim:#94a3b8;
+      --code:#0a0f1a;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;}
+
+    .layout{display:flex;min-height:100vh;}
+    .sidebar{
+      width:270px;flex-shrink:0;background:var(--bg-card);
+      border-right:1px solid var(--border);position:sticky;top:0;height:100vh;
+      overflow-y:auto;padding:24px 0;
+    }
+    .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+    .sidebar-logo .logo-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:var(--gdim);border:1px solid rgba(34,197,94,0.25);
+      color:var(--green);font-size:10px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;
+      padding:4px 10px;border-radius:99px;margin-bottom:8px;
+    }
+    .sidebar-logo h2{font-size:14px;font-weight:700;color:var(--text);}
+    .sidebar-logo p{font-size:11px;color:var(--muted);margin-top:2px;}
+    .nav-section{padding:4px 12px;margin-top:8px;}
+    .nav-section-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:4px;}
+    .nav-link{
+      display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;
+      font-size:13px;font-weight:500;color:var(--dim);text-decoration:none;transition:all 0.18s;
+    }
+    .nav-link:hover{background:var(--gdim);color:var(--green);}
+    .nav-link .nl-num{
+      width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,0.05);
+      display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;
+    }
+
+    .main{flex:1;overflow:auto;}
+    .hero{
+      background:linear-gradient(135deg,#050811 0%,#071220 60%,#050811 100%);
+      border-bottom:1px solid var(--border);padding:56px 56px 48px;
+    }
+    .hero-eyebrow{
+      display:inline-flex;align-items:center;gap:8px;background:var(--gdim);
+      border:1px solid rgba(34,197,94,0.25);color:var(--green);font-size:11px;
+      font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;
+      border-radius:99px;margin-bottom:20px;
+    }
+    .hero h1{
+      font-size:clamp(26px,3.8vw,44px);font-weight:900;letter-spacing:-1.2px;
+      background:linear-gradient(135deg,#fff 0%,#94a3b8 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px;
+    }
+    .hero p{font-size:15px;color:var(--dim);max-width:640px;margin-bottom:24px;}
+    .hero-chips{display:flex;flex-wrap:wrap;gap:10px;}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;}
+    .chip-green{background:var(--gdim);color:var(--green);border:1px solid rgba(34,197,94,0.25);}
+    .chip-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(59,130,246,0.25);}
+    .chip-teal{background:var(--tdim);color:var(--teal);border:1px solid rgba(20,184,166,0.25);}
+
+    .page{max-width:920px;padding:40px 56px 100px;}
+    .section{margin-bottom:56px;scroll-margin-top:32px;}
+    .section-title{
+      font-size:20px;font-weight:800;letter-spacing:-0.3px;margin-bottom:18px;
+      padding-bottom:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;
+    }
+    .section-title .s-icon{
+      width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+      font-size:16px;flex-shrink:0;
+    }
+    .s-green{background:var(--gdim);border:1px solid rgba(34,197,94,0.25);}
+    .s-blue{background:var(--bdim);border:1px solid rgba(59,130,246,0.25);}
+    .s-teal{background:var(--tdim);border:1px solid rgba(20,184,166,0.25);}
+    .s-yellow{background:var(--ydim);border:1px solid rgba(234,179,8,0.25);}
+    .s-purple{background:var(--pdim);border:1px solid rgba(168,85,247,0.25);}
+    .s-red{background:var(--rdim);border:1px solid rgba(239,68,68,0.25);}
+
+    .topo{background:var(--code);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+    .topo-head{padding:11px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.7px;text-transform:uppercase;}
+    .topo-body{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#64748b;line-height:2;padding:20px 24px;overflow-x:auto;white-space:pre;}
+    .tv{color:#60a5fa;font-weight:700;}
+    .tw{color:#fb923c;font-weight:700;}
+    .te{color:#2dd4bf;font-weight:700;}
+    .ts{color:#4ade80;font-weight:700;}
+    .ta{color:#818cf8;font-weight:700;}
+    .th{color:#f1f5f9;font-weight:700;}
+    .ty{color:#fbbf24;font-weight:600;}
+
+    .machine-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+    .mc{border-radius:12px;padding:16px;text-align:center;}
+    .mc-vps{background:var(--bdim);border:1px solid rgba(59,130,246,0.25);}
+    .mc-win{background:var(--odim);border:1px solid rgba(249,115,22,0.25);}
+    .mc-eve{background:var(--tdim);border:1px solid rgba(20,184,166,0.25);}
+    .mc-cisco{background:var(--gdim);border:1px solid rgba(34,197,94,0.25);}
+    .mc-icon{font-size:24px;margin-bottom:8px;}
+    .mc-name{font-size:12px;font-weight:700;}
+    .mc-vps .mc-name{color:var(--blue);}
+    .mc-win .mc-name{color:var(--orange);}
+    .mc-eve .mc-name{color:var(--teal);}
+    .mc-cisco .mc-name{color:var(--green);}
+    .mc-ip{font-size:11px;color:var(--muted);margin-top:4px;font-family:'JetBrains Mono',monospace;}
+    .mc-role{font-size:11px;color:var(--dim);margin-top:6px;}
+
+    .phase{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+    .phase-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+    .phase-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+    .pn-vps{background:var(--bdim);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+    .pn-eve{background:var(--tdim);color:var(--teal);border:1px solid rgba(20,184,166,0.3);}
+    .pn-cisco{background:var(--gdim);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+    .phase-header h3{font-size:15px;font-weight:700;}
+    .phase-header p{font-size:12px;color:var(--muted);margin-top:2px;}
+    .phase-tag{margin-left:auto;padding:4px 11px;border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+    .pt-vps{background:var(--bdim);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+    .pt-eve{background:var(--tdim);color:var(--teal);border:1px solid rgba(20,184,166,0.3);}
+    .pt-cisco{background:var(--gdim);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+    .phase-body{padding:20px;}
+    .phase-desc{font-size:14px;color:var(--dim);margin-bottom:16px;}
+
+    .code-block{background:var(--code);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0;}
+    .code-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);}
+    .ch-l{display:flex;align-items:center;gap:10px;}
+    .dots{display:flex;gap:5px;}
+    .dot{width:9px;height:9px;border-radius:50%;}
+    .dr{background:#ff5f56;}.dy{background:#ffbd2e;}.dg{background:#27c93f;}
+    .file-name{font-size:11px;color:var(--muted);font-weight:600;}
+    .loc-pill{padding:2px 9px;border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+    .lp-vps{background:var(--bdim);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+    .lp-eve{background:var(--tdim);color:var(--teal);border:1px solid rgba(20,184,166,0.3);}
+    .lp-win{background:var(--odim);color:var(--orange);border:1px solid rgba(249,115,22,0.3);}
+    .lp-cs{background:var(--gdim);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+    .code-body{padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#94a3b8;line-height:1.95;overflow-x:auto;white-space:pre;}
+    .cm{color:#374151;} .ck{color:#c084fc;} .cs{color:#fb923c;} .cv{color:#facc15;} .cf{color:#60a5fa;} .cc{color:#a3e635;} .cx{color:#f87171;}
+
+    .box{border-radius:10px;padding:14px 18px;margin:12px 0;font-size:14px;display:flex;gap:12px;align-items:flex-start;}
+    .bx-icon{font-size:17px;flex-shrink:0;margin-top:1px;}
+    .bg{background:var(--gdim);border:1px solid rgba(34,197,94,0.2);color:#86efac;}
+    .bb{background:var(--bdim);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;}
+    .bt{background:var(--tdim);border:1px solid rgba(20,184,166,0.2);color:#5eead4;}
+    .by{background:var(--ydim);border:1px solid rgba(234,179,8,0.2);color:#fde047;}
+    .br{background:var(--rdim);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;}
+    .bp{background:var(--pdim);border:1px solid rgba(168,85,247,0.2);color:#d8b4fe;}
+    .box strong{display:block;margin-bottom:3px;font-weight:700;}
+
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+    .data-table th{background:var(--bg-card2);border:1px solid var(--border);padding:10px 14px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;font-weight:700;}
+    .data-table td{border:1px solid var(--border);padding:10px 14px;background:var(--bg-card);}
+    .data-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;}
+    .badge-g{background:var(--gdim);color:var(--green);border:1px solid rgba(34,197,94,0.25);}
+    .badge-b{background:var(--bdim);color:var(--blue);border:1px solid rgba(59,130,246,0.25);}
+    .badge-t{background:var(--tdim);color:var(--teal);border:1px solid rgba(20,184,166,0.25);}
+    .badge-y{background:var(--ydim);color:var(--yellow);border:1px solid rgba(234,179,8,0.25);}
+    code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:40px 0;}
+    a{color:inherit;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">⚡ Solution 2</div>
+      <h2>Agent Push Mode</h2>
+      <p>Full Implementation Guide</p>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">📖 Overview</div>
+      <a class="nav-link" href="#overview"><span class="nl-num">01</span>Architecture</a>
+      <a class="nav-link" href="#topology"><span class="nl-num">02</span>4-Layer Topology</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">🔧 Setup Phases</div>
+      <a class="nav-link" href="#phase-vps"><span class="nl-num">P1</span>VPS — Backend Ingest API</a>
+      <a class="nav-link" href="#phase-eve-node"><span class="nl-num">P2</span>EVE-NG — Install Node & PM2</a>
+      <a class="nav-link" href="#phase-agent-code"><span class="nl-num">P3</span>EVE-NG — agent.js Code</a>
+      <a class="nav-link" href="#phase-cisco"><span class="nl-num">P4</span>Cisco — Enable SNMP</a>
+      <a class="nav-link" href="#phase-syslog"><span class="nl-num">P5</span>Syslog Relay (Optional)</a>
+      <a class="nav-link" href="#phase-pm2"><span class="nl-num">P6</span>Production Setup (PM2)</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">✅ Validation</div>
+      <a class="nav-link" href="#testing"><span class="nl-num">07</span>Verification Tests</a>
+      <a class="nav-link" href="#troubleshooting"><span class="nl-num">08</span>Troubleshooting</a>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="hero">
+      <div class="hero-eyebrow">🤖 Solution 2 — Agent Push Mode</div>
+      <h1>Complete Guide: Local Agent Push Architecture</h1>
+      <p>
+        Detailed step-by-step setup to poll Cisco SNMP locally <strong>inside the EVE-NG Linux VM</strong> and push telemetry metrics directly to the Cloud VPS over outbound HTTPS.
+      </p>
+      <div class="hero-chips">
+        <span class="chip chip-green">✓ Zero VPN Requirement</span>
+        <span class="chip chip-teal">✓ Runs inside EVE-NG VM (Ubuntu)</span>
+        <span class="chip chip-blue">✓ Outbound HTTP/HTTPS to VPS</span>
+        <span class="chip chip-green">✓ Auto-restarts with PM2</span>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- OVERVIEW -->
+      <div class="section" id="overview">
+        <div class="section-title">
+          <div class="s-icon s-green">💡</div>
+          Architecture Overview
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:18px;">
+          Because your Cisco devices (<code>192.168.100.x</code>) sit inside EVE-NG's private internal virtual bridge, direct SNMP polling from the public internet (VPS) fails. In <strong>Agent Push Mode</strong>, a lightweight script (<code>agent.js</code>) runs locally on the <strong>EVE-NG Linux VM</strong>. It queries Cisco switches over local LAN (&lt;1ms latency) and pushes JSON payloads to the VPS API endpoint <code>POST /api/devices/ingest</code> every 10 seconds.
+        </p>
+
+        <div class="topo">
+          <div class="topo-head">🔄 Data Flow Comparison</div>
+          <div class="topo-body"><span class="ty">❌ OLD IPsec VPN Way (Broken / Unreliable):</span>
+<span class="tv">VPS (72.62.76.1)</span> ──→ IPsec VPN ──→ <span class="cx">192.168.100.2 (SNMP timeout)</span>
+
+<span class="th">✅ NEW Agent Push Way (100% Reliable):</span>
+<span class="ts">Cisco Switch (192.168.100.2)</span>
+     │  SNMP UDP 161 (Local Virtual Bridge)
+     ▼
+<span class="te">EVE-NG VM (192.168.43.253)</span>  ── [ agent.js ]
+     │  HTTP POST /api/devices/ingest (Outbound connection)
+     ▼
+<span class="tv">Cloud VPS Backend (72.62.76.1:5000)</span>
+     │  PostgreSQL status_logs  +  WebSocket Broadcast
+     ▼
+<span class="th">Dashboard UI (http://72.62.76.1:5173)</span></div>
+        </div>
+      </div>
+
+      <!-- TOPOLOGY -->
+      <div class="section" id="topology">
+        <div class="section-title">
+          <div class="s-icon s-blue">🗺️</div>
+          4-Layer Setup Breakdown
+        </div>
+
+        <div class="machine-grid">
+          <div class="mc mc-vps">
+            <div class="mc-icon">🌐</div>
+            <div class="mc-name">VPS Server</div>
+            <div class="mc-ip">72.62.76.1</div>
+            <div class="mc-role">Ubuntu Cloud Host<br/>Web App & Database</div>
+          </div>
+          <div class="mc mc-win">
+            <div class="mc-icon">🖥️</div>
+            <div class="mc-name">Windows PC</div>
+            <div class="mc-ip">Local Machine</div>
+            <div class="mc-role">Physical Computer<br/>Runs VMware</div>
+          </div>
+          <div class="mc mc-eve">
+            <div class="mc-icon">💻</div>
+            <div class="mc-name">EVE-NG VM</div>
+            <div class="mc-ip">192.168.43.253</div>
+            <div class="mc-role">Ubuntu Linux VM<br/>Runs agent.js</div>
+          </div>
+          <div class="mc mc-cisco">
+            <div class="mc-icon">🔌</div>
+            <div class="mc-name">Cisco Lab</div>
+            <div class="mc-ip">192.168.100.x</div>
+            <div class="mc-role">Virtual Switches<br/>SNMP Enabled</div>
+          </div>
+        </div>
+
+        <div class="box by">
+          <div class="bx-icon">💡</div>
+          <div>
+            <strong>Key takeaway:</strong> You will SSH into the <strong>EVE-NG VM</strong> (<code>192.168.43.253</code>) from Windows to install Node.js and run `agent.js`. You do not need to install Node on Windows PC.
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PHASE 1 -->
+      <div class="section" id="phase-vps">
+        <div class="section-title">
+          <div class="s-icon s-blue">🌐</div>
+          Phase 1 — VPS Server: Add API Ingest Route
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-vps">1.1</div>
+            <div>
+              <h3>Add /ingest endpoint to device routes</h3>
+              <p>VPS path: backend/routes/deviceRoutes.js</p>
+            </div>
+            <span class="phase-tag pt-vps">🌐 VPS Server</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">backend/routes/deviceRoutes.js</span></div>
+                <span class="loc-pill lp-vps">🌐 VPS Server</span>
+              </div>
+              <div class="code-body"><span class="cm">// POST /api/devices/ingest — Receives telemetry pushed from agent.js</span>
+router.post(<span class="cs">'/ingest'</span>, async (req, res) => {
+  try {
+    const { deviceId, cpu = <span class="cv">0</span>, mem = <span class="cv">0</span>, status = <span class="cs">'online'</span>, trafficIn = <span class="cv">0</span>, trafficOut = <span class="cv">0</span>, latency = <span class="cv">0</span> } = req.body;
+    if (!deviceId) return res.status(<span class="cv">400</span>).json({ error: <span class="cs">'deviceId required'</span> });
+
+    await DeviceModel.insertStatusLog(deviceId, status, latency, cpu, mem, trafficIn, trafficOut);
+
+    if (req.app.locals.broadcast) {
+      req.app.locals.broadcast({ type: <span class="cs">'device_update'</span>, deviceId, cpu, mem, status, latency });
+    }
+
+    res.json({ success: <span class="cv">true</span>, deviceId, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error(<span class="cs">'[INGEST ERROR]'</span>, err.message);
+    res.status(<span class="cv">500</span>).json({ error: err.message });
+  }
+});</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-vps">1.2</div>
+            <div>
+              <h3>Restart backend container on VPS</h3>
+              <p>Apply route changes</p>
+            </div>
+            <span class="phase-tag pt-vps">🌐 VPS Server</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Ubuntu VPS Terminal</span></div>
+                <span class="loc-pill lp-vps">🌐 VPS Server</span>
+              </div>
+              <div class="code-body">cd /root/network_monitoring_project
+docker compose restart backend</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PHASE 2 -->
+      <div class="section" id="phase-eve-node">
+        <div class="section-title">
+          <div class="s-icon s-teal">💻</div>
+          Phase 2 — EVE-NG VM: Install Node.js & PM2
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-eve">2.1</div>
+            <div>
+              <h3>SSH into EVE-NG Linux VM from Windows</h3>
+              <p>Using PowerShell, CMD, or PuTTY</p>
+            </div>
+            <span class="phase-tag pt-eve">💻 EVE-NG VM</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Windows Terminal</span></div>
+                <span class="loc-pill lp-win">🖥️ Windows PC</span>
+              </div>
+              <div class="code-body">ssh root@192.168.43.253</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-eve">2.2</div>
+            <div>
+              <h3>Install Node.js & net-snmp inside EVE-NG</h3>
+              <p>EVE-NG terminal commands</p>
+            </div>
+            <span class="phase-tag pt-eve">💻 EVE-NG VM</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">EVE-NG Terminal</span></div>
+                <span class="loc-pill lp-eve">💻 EVE-NG VM</span>
+              </div>
+              <div class="code-body"><span class="cm"># Install Node.js 20 LTS</span>
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+<span class="cm"># Install PM2 globally</span>
+npm install -g pm2
+
+<span class="cm"># Create agent directory</span>
+mkdir -p /opt/netmonitor-agent
+cd /opt/netmonitor-agent
+
+<span class="cm"># Initialize package & install net-snmp</span>
+npm init -y
+npm install net-snmp</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PHASE 3 -->
+      <div class="section" id="phase-agent-code">
+        <div class="section-title">
+          <div class="s-icon s-teal">🤖</div>
+          Phase 3 — EVE-NG VM: Create agent.js
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-eve">3.1</div>
+            <div>
+              <h3>Create /opt/netmonitor-agent/agent.js</h3>
+              <p>Full production agent script</p>
+            </div>
+            <span class="phase-tag pt-eve">💻 EVE-NG VM</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">/opt/netmonitor-agent/agent.js</span></div>
+                <span class="loc-pill lp-eve">💻 EVE-NG VM</span>
+              </div>
+              <div class="code-body"><span class="ck">const</span> snmp = require(<span class="cs">'net-snmp'</span>);
+<span class="ck">const</span> http = require(<span class="cs">'http'</span>);
+
+<span class="ck">const</span> VPS_HOST = <span class="cs">'72.62.76.1'</span>;
+<span class="ck">const</span> VPS_PORT = <span class="cv">5000</span>;
+<span class="ck">const</span> POLL_MS = <span class="cv">10000</span>;
+<span class="ck">const</span> COMMUNITY = <span class="cs">'darn@2026'</span>;
+
+<span class="ck">const</span> DEVICES = [
+  { id: <span class="cv">2</span>, name: <span class="cs">'Cisco_Firewall'</span>, ip: <span class="cs">'192.168.100.1'</span> },
+  { id: <span class="cv">3</span>, name: <span class="cs">'Core_Switch'</span>,    ip: <span class="cs">'192.168.100.2'</span> },
+  { id: <span class="cv">4</span>, name: <span class="cs">'Access_Switch'</span>,  ip: <span class="cs">'192.168.10.252'</span> },
+];
+
+<span class="ck">const</span> OIDs = [
+  <span class="cs">'1.3.6.1.4.1.9.2.1.56.0'</span>, <span class="cm">// Cisco CPU 5-sec average %</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.8.0'</span>,  <span class="cm">// Free processor RAM</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.9.0'</span>,  <span class="cm">// Used processor RAM</span>
+];
+
+<span class="ck">function</span> pollDevice(dev) {
+  <span class="ck">return new</span> Promise((resolve) => {
+    <span class="ck">const</span> session = snmp.createSession(dev.ip, COMMUNITY, { timeout: <span class="cv">3000</span>, version: snmp.Version2c });
+    session.get(OIDs, (err, varbinds) => {
+      session.close();
+      if (err) return resolve(null);
+      <span class="ck">const</span> cpu = parseInt(varbinds[<span class="cv">0</span>]?.value) || <span class="cv">0</span>;
+      <span class="ck">const</span> free = parseInt(varbinds[<span class="cv">1</span>]?.value) || <span class="cv">1</span>;
+      <span class="ck">const</span> used = parseInt(varbinds[<span class="cv">2</span>]?.value) || <span class="cv">0</span>;
+      <span class="ck">const</span> mem = Math.round((used / (free + used)) * <span class="cv">100</span>);
+      resolve({ cpu, mem, status: <span class="cs">'online'</span>, trafficIn: <span class="cv">0</span>, trafficOut: <span class="cv">0</span>, latency: <span class="cv">1</span> });
+    });
+  });
+}
+
+<span class="ck">function</span> postToVPS(path, body) {
+  <span class="ck">const</span> data = JSON.stringify(body);
+  <span class="ck">const</span> req = http.request({
+    hostname: VPS_HOST, port: VPS_PORT, path, method: <span class="cs">'POST'</span>,
+    headers: { <span class="cs">'Content-Type'</span>: <span class="cs">'application/json'</span>, <span class="cs">'Content-Length'</span>: Buffer.byteLength(data) }
+  });
+  req.on(<span class="cs">'error'</span>, (e) => console.error(<span class="cs">`[PUSH ERROR] ${e.message}`</span>));
+  req.write(data);
+  req.end();
+}
+
+<span class="ck">async function</span> runPollCycle() {
+  console.log(<span class="cs">`[CYCLE] Polling ${DEVICES.length} devices...`</span>);
+  <span class="ck">for</span> (<span class="ck">const</span> dev <span class="ck">of</span> DEVICES) {
+    <span class="ck">const</span> m = await pollDevice(dev);
+    <span class="ck">const</span> payload = m || { cpu: <span class="cv">0</span>, mem: <span class="cv">0</span>, status: <span class="cs">'offline'</span>, trafficIn: <span class="cv">0</span>, trafficOut: <span class="cv">0</span>, latency: <span class="cv">0</span> };
+    postToVPS(<span class="cs">'/api/devices/ingest'</span>, { deviceId: dev.id, ...payload });
+    if (m) console.log(<span class="cs">`  ✓ ${dev.name}: CPU ${m.cpu}%, MEM ${m.mem}%`</span>);
+    else console.log(<span class="cs">`  ✗ ${dev.name}: OFFLINE`</span>);
+  }
+}
+
+setInterval(runPollCycle, POLL_MS);
+runPollCycle();
+console.log(<span class="cs">'[AGENT STARTED] Pushing SNMP metrics to VPS...'</span>);</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PHASE 4 -->
+      <div class="section" id="phase-cisco">
+        <div class="section-title">
+          <div class="s-icon s-green">🔌</div>
+          Phase 4 — Cisco Devices: Enable SNMP
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-cisco">4.1</div>
+            <div>
+              <h3>Run CLI commands on all Cisco switches</h3>
+              <p>Inside EVE-NG device console</p>
+            </div>
+            <span class="phase-tag pt-cisco">🔌 Cisco CLI</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Cisco Switch CLI</span></div>
+                <span class="loc-pill lp-cs">🔌 Cisco Device</span>
+              </div>
+              <div class="code-body">configure terminal
+snmp-server community darn@2026 RO
+end
+write memory</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PHASE 6 -->
+      <div class="section" id="phase-pm2">
+        <div class="section-title">
+          <div class="s-icon s-green">🚀</div>
+          Phase 5 — Production Setup with PM2
+        </div>
+
+        <div class="phase">
+          <div class="phase-header">
+            <div class="phase-num pn-eve">5.1</div>
+            <div>
+              <h3>Start agent under PM2 inside EVE-NG VM</h3>
+              <p>Auto-restart on crash and boot persistence</p>
+            </div>
+            <span class="phase-tag pt-eve">💻 EVE-NG VM</span>
+          </div>
+          <div class="phase-body">
+            <div class="code-block">
+              <div class="code-header">
+                <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">EVE-NG Terminal</span></div>
+                <span class="loc-pill lp-eve">💻 EVE-NG VM</span>
+              </div>
+              <div class="code-body">cd /opt/netmonitor-agent
+pm2 start agent.js --name netmonitor-agent
+pm2 save
+pm2 startup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- TESTING -->
+      <div class="section" id="testing">
+        <div class="section-title">
+          <div class="s-icon s-green">🧪</div>
+          Verification Tests
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Test commands inside EVE-NG VM</span></div>
+            <span class="loc-pill lp-eve">💻 EVE-NG VM</span>
+          </div>
+          <div class="code-body"><span class="cm"># 1. Test SNMP locally</span>
+snmpwalk -v2c -c darn@2026 192.168.100.2 1.3.6.1.2.1.1.5.0
+
+<span class="cm"># 2. Test manual ingest HTTP POST to VPS</span>
+curl -X POST http://72.62.76.1:5000/api/devices/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"deviceId":3,"cpu":45,"mem":55,"status":"online","latency":1}'
+
+<span class="cm"># 3. Check PM2 live logs</span>
+pm2 logs netmonitor-agent</div>
+        </div>
+      </div>
+
+      <!-- TROUBLESHOOTING -->
+      <div class="section" id="troubleshooting">
+        <div class="section-title">
+          <div class="s-icon s-red">🔧</div>
+          Troubleshooting
+        </div>
+
+        <table class="data-table">
+          <thead><tr><th>Issue</th><th>Check Location</th><th>Solution</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>SNMP timeout error</td>
+              <td>EVE-NG VM</td>
+              <td>Check ping to 192.168.100.2. Ensure <code>snmp-server community darn@2026 RO</code> is enabled on switch.</td>
+            </tr>
+            <tr>
+              <td>HTTP POST connection refused</td>
+              <td>VPS</td>
+              <td>Check VPS backend is running (<code>docker ps</code>) and port 5000 is listening.</td>
+            </tr>
+            <tr>
+              <td>Data not updating in dashboard</td>
+              <td>Browser</td>
+              <td>Ensure WebSocket connection to <code>ws://72.62.76.1:5000</code> is open. Refresh page.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

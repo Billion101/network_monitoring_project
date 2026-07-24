@@ -86,7 +86,12 @@ const runTelemetryLoop = async () => {
     
     for (const dev of devicesList) {
       const base = BASELINES[dev.type] || { cpu: 20, mem: 30, latency: 5, trafficIn: 200, trafficOut: 100 };
-      let cpu, mem, status = 'online';
+      let cpu = 0;
+      let mem = 0;
+      let latency = null;
+      let status = 'online';
+      let trafficIn = 0;
+      let trafficOut = 0;
 
       // 1. Try polling real device via SNMP v2c
       const snmpResult = await pollDeviceMetrics(dev.ipAddress);
@@ -95,26 +100,27 @@ const runTelemetryLoop = async () => {
         // Real SNMP metrics collected
         cpu = snmpResult.data.cpu;
         mem = snmpResult.data.mem;
+        latency = snmpResult.data.latency || 1;
         status = snmpResult.data.status || 'online';
-        console.log(`[SNMP POLLED REAL] Device ${dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%`);
+        console.log(`[SNMP POLLED REAL] Device ${dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms`);
       } else {
         if (process.env.ENABLE_SIMULATOR === 'true') {
           // Fallback simulation metrics if simulator flag is enabled
           cpu = Math.max(2, Math.min(98, Math.round(base.cpu + (Math.random() - 0.5) * 15)));
           mem = Math.max(5, Math.min(95, Math.round(base.mem + (Math.random() - 0.5) * 8)));
+          latency = Math.max(1, Math.round(base.latency + (Math.random() - 0.5) * 3));
+          trafficIn = Math.max(10, Math.round(base.trafficIn + (Math.random() - 0.5) * 150));
+          trafficOut = Math.max(5, Math.round(base.trafficOut + (Math.random() - 0.5) * 50));
           status = 'online';
         } else {
           // Strict Real Mode: Unreachable device is marked offline with 0 utilization
           cpu = 0;
           mem = 0;
+          latency = null;
           status = 'offline';
           console.warn(`[SNMP REAL MODE] Device ${dev.name} (${dev.ipAddress}) unreachable -> Marked OFFLINE`);
         }
       }
-
-      const latency = status === 'offline' ? null : Math.max(1, Math.round(base.latency + (Math.random() - 0.5) * 3));
-      const trafficIn = status === 'offline' ? 0 : Math.max(10, Math.round(base.trafficIn + (Math.random() - 0.5) * 150));
-      const trafficOut = status === 'offline' ? 0 : Math.max(5, Math.round(base.trafficOut + (Math.random() - 0.5) * 50));
 
       // Append health telemetry status log entry
       await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);

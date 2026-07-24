@@ -35,8 +35,11 @@ const pollDeviceMetrics = (ipAddress, community = process.env.SNMP_COMMUNITY || 
       '1.3.6.1.4.1.9.2.1.9.0'    // 3: RAM Used (Bytes)
     ];
 
+    const startTime = Date.now();
+
     session.get(oids, (error, varbinds) => {
       session.close();
+      const responseTime = Date.now() - startTime;
 
       if (error) {
         return resolve({ success: false, error: error.toString() });
@@ -70,6 +73,7 @@ const pollDeviceMetrics = (ipAddress, community = process.env.SNMP_COMMUNITY || 
           sysName,
           cpu,
           mem,
+          latency: responseTime,
           status: 'online'
         }
       });

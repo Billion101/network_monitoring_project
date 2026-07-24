@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Full System Architecture & Technical Specification | NetMonitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #050811;
+      --bg-card: #0d1117;
+      --bg-card2: #111827;
+      --border: #1e2a3a;
+      --border-light: #243447;
+      --green: #22c55e;
+      --gdim: rgba(34,197,94,0.12);
+      --blue: #3b82f6;
+      --bdim: rgba(59,130,246,0.12);
+      --purple: #a855f7;
+      --pdim: rgba(168,85,247,0.12);
+      --yellow: #eab308;
+      --ydim: rgba(234,179,8,0.12);
+      --orange: #f97316;
+      --odim: rgba(249,115,22,0.12);
+      --teal: #14b8a6;
+      --tdim: rgba(20,184,166,0.12);
+      --red: #ef4444;
+      --rdim: rgba(239,68,68,0.12);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --dim: #94a3b8;
+      --code: #0a0f1a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gdim);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+      margin-bottom: 8px;
+    }
+    .sidebar-logo h2 { font-size: 15px; font-weight: 800; color: var(--text); }
+    .sidebar-logo p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .nav-section { padding: 4px 12px; margin-top: 12px; }
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 6px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dim);
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+    .nav-link:hover { background: var(--bdim); color: var(--blue); }
+    .nav-link .nl-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Main Content */
+    .main { flex: 1; overflow: auto; }
+
+    .hero {
+      background: linear-gradient(135deg, #050811 0%, #071220 60%, #050811 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 56px 48px;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bdim);
+      border: 1px solid rgba(59,130,246,0.25);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 99px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 3.8vw, 44px);
+      font-weight: 900;
+      letter-spacing: -1.2px;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 14px;
+    }
+    .hero p { font-size: 15px; color: var(--dim); max-width: 680px; margin-bottom: 24px; }
+
+    .hero-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chip-green { background: var(--gdim); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .chip-blue  { background: var(--bdim);  color: var(--blue);  border: 1px solid rgba(59,130,246,0.25); }
+    .chip-purple{ background: var(--pdim);color: var(--purple);border: 1px solid rgba(168,85,247,0.25); }
+    .chip-teal  { background: var(--tdim);  color: var(--teal);  border: 1px solid rgba(20,184,166,0.25); }
+
+    .page { max-width: 960px; padding: 40px 56px 100px; }
+
+    .section { margin-bottom: 64px; scroll-margin-top: 32px; }
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title .s-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .s-green { background: var(--gdim); border: 1px solid rgba(34,197,94,0.25); }
+    .s-blue  { background: var(--bdim);  border: 1px solid rgba(59,130,246,0.25); }
+    .s-teal  { background: var(--tdim);  border: 1px solid rgba(20,184,166,0.25); }
+    .s-yellow{ background: var(--ydim);border: 1px solid rgba(234,179,8,0.25); }
+    .s-purple{ background: var(--pdim);border: 1px solid rgba(168,85,247,0.25); }
+
+    .topo-box {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .topo-head {
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .topo-body {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #64748b;
+      line-height: 2.1;
+      padding: 22px 26px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .tv { color: #60a5fa; font-weight: 700; }
+    .te { color: #2dd4bf; font-weight: 700; }
+    .ts { color: #4ade80; font-weight: 700; }
+    .th { color: #f1f5f9; font-weight: 700; }
+    .ty { color: #fbbf24; font-weight: 600; }
+
+    .machine-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .mc { border-radius: 12px; padding: 16px; text-align: center; }
+    .mc-vps  { background: var(--bdim); border: 1px solid rgba(59,130,246,0.25); }
+    .mc-win  { background: var(--odim); border: 1px solid rgba(249,115,22,0.25); }
+    .mc-eve  { background: var(--tdim); border: 1px solid rgba(20,184,166,0.25); }
+    .mc-cisco{ background: var(--gdim); border: 1px solid rgba(34,197,94,0.25); }
+    .mc-icon { font-size: 24px; margin-bottom: 8px; }
+    .mc-name { font-size: 12px; font-weight: 700; }
+    .mc-vps   .mc-name { color: var(--blue); }
+    .mc-win   .mc-name { color: var(--orange); }
+    .mc-eve   .mc-name { color: var(--teal); }
+    .mc-cisco .mc-name { color: var(--green); }
+    .mc-ip { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+    .mc-role { font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+    .code-block {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 14px 0;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+    .ch-l { display: flex; align-items: center; gap: 10px; }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dr { background: #ff5f56; } .dy { background: #ffbd2e; } .dg { background: #27c93f; }
+    .file-name { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .loc-pill {
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .lp-vps { background: var(--bdim); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+    .lp-cs  { background: var(--gdim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .code-body {
+      padding: 16px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #94a3b8;
+      line-height: 1.95;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .cm { color: #374151; } .ck { color: #c084fc; } .cs { color: #fb923c; } .cv { color: #facc15; } .cf { color: #60a5fa; } .cc { color: #a3e635; }
+
+    .box {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .bx-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .bg { background: var(--gdim); border: 1px solid rgba(34,197,94,0.2); color: #86efac; }
+    .bb { background: var(--bdim); border: 1px solid rgba(59,130,246,0.2); color: #93c5fd; }
+    .bt { background: var(--tdim); border: 1px solid rgba(20,184,166,0.2); color: #5eead4; }
+    .by { background: var(--ydim); border: 1px solid rgba(234,179,8,0.2); color: #fde047; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+    .data-table th {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 700;
+    }
+    .data-table td { border: 1px solid var(--border); padding: 11px 14px; background: var(--bg-card); }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-g { background: var(--gdim); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .badge-b { background: var(--bdim); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+
+    .divider { height: 1px; background: linear-gradient(90deg,transparent,var(--border),transparent); margin: 48px 0; }
+    code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; font-family: 'JetBrains Mono',monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">⚡ System Spec</div>
+      <h2>NetMonitor Spec</h2>
+      <p>Software Engineering Architecture</p>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">🏗️ Architecture</div>
+      <a class="nav-link" href="#overview"><span class="nl-num">01</span>High-Level Topology</a>
+      <a class="nav-link" href="#devices"><span class="nl-num">02</span>Monitored Inventory</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">⚙️ Setup & Pipeline</div>
+      <a class="nav-link" href="#vpn-setup"><span class="nl-num">03</span>IPsec VPN Pipeline</a>
+      <a class="nav-link" href="#backend-snmp"><span class="nl-num">04</span>SNMP Telemetry Engine</a>
+      <a class="nav-link" href="#backend-syslog"><span class="nl-num">05</span>Syslog UDP 514 Engine</a>
+      <a class="nav-link" href="#database"><span class="nl-num">06</span>PostgreSQL Schema</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">🌐 WebSockets & UI</div>
+      <a class="nav-link" href="#websocket"><span class="nl-num">07</span>WebSocket Real-Time</a>
+      <a class="nav-link" href="#frontend"><span class="nl-num">08</span>Frontend Rendering</a>
+      <a class="nav-link" href="#summary"><span class="nl-num">09</span>Engineering Summary</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="hero">
+      <div class="hero-eyebrow">🛠️ Network Monitoring System Specification</div>
+      <h1>Full Technical Architecture &amp; Data Pipeline Specification</h1>
+      <p>
+        A comprehensive software &amp; network engineering specification detailing end-to-end data flow: from local EVE-NG Cisco hardware, across IPsec VPN, into Dockerized Node.js services, PostgreSQL persistence, and real-time React WebSocket UI.
+      </p>
+      <div class="hero-chips">
+        <span class="chip chip-blue">🔒 IKEv2 IPsec Tunnel</span>
+        <span class="chip chip-green">📡 SNMP v2c Poller (5s)</span>
+        <span class="chip chip-teal">📜 Syslog UDP 514 (Instant)</span>
+        <span class="chip chip-purple">⚡ WebSockets Real-Time</span>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- 1. HIGH LEVEL TOPOLOGY -->
+      <div class="section" id="overview">
+        <div class="section-title">
+          <div class="s-icon s-blue">🏗️</div>
+          1. High-Level Network & System Architecture
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:20px;">
+          The system bridges a local private lab environment (EVE-NG running on VMware Workstation inside a local Windows PC) with a public Cloud VPS server using an enterprise-grade <strong>IKEv2 IPsec VPN Tunnel</strong>.
+        </p>
+
+        <div class="topo-box">
+          <div class="topo-head">🗺️ End-to-End System Topology Diagram</div>
+          <div class="topo-body"><span class="th">LOCAL EVE-NG LAB (Inside VMware on Windows PC)</span>                <span class="tv">CLOUD VPS SERVER (Public IP: 72.62.76.1)</span>
+┌──────────────────────────────────────────────┐              ┌────────────────────────────────────────────────┐
+│ [ PC1: 192.168.10.10 ] (VLAN 10)             │              │  Ubuntu Linux 22.04 LTS                        │
+│ [ PC2: 192.168.20.10 ] (VLAN 20)             │              │  Docker Compose Container Stack:               │
+│ [ PC3: 192.168.30.10 ] (VLAN 30)             │              │                                                │
+│       │                                      │              │  ┌──────────────────────────────────────────┐  │
+│       ▼                                      │              │  │ netmonitor_backend (Node.js Express)     │  │
+│ [ Access Switch ] (192.168.10.252)           │              │  │  • snmpService.js  (SNMP v2c every 5s)   │  │
+│       │ Trunk                                │              │  │  • syslogService.js(UDP 514 Listener)   │  │
+│       ▼                                      │              │  │  • WebSocket Server(ws://72.62.76.1:5000)│  │
+│ [ Core Switch ] (192.168.100.2)              │              │  └────────────────────┬─────────────────────┘  │
+│       │ Inter-VLAN                            │              │                       │                        │
+│       ▼                                      │              │                       ▼                        │
+│ [ Cisco Firewall ] (192.168.100.1 / WAN)     │              │  ┌──────────────────────────────────────────┐  │
+└───────┬──────────────────────────────────────┘              │  │ netmonitor_db (PostgreSQL 15)           │  │
+        │                                                     │  │  • status_logs (Telemetry metrics)      │  │
+        │ 🔒 IKEv2 IPsec VPN Tunnel                           │  │  • syslogs     (Event messages)        │  │
+        │    Subnet Route:                                    │  └──────────────────────────────────────────┘  │
+        │    192.168.0.0/16 <===============================>  │                                                │
+        │    72.62.76.1/32                                    │  ┌──────────────────────────────────────────┐  │
+        └─────────────────────────────────────────────────────►  │ netmonitor_frontend (React Vite UI)       │  │
+                                                              │  │  • http://72.62.76.1:5173              │  │
+                                                              │  └──────────────────────────────────────────┘  │
+                                                              └────────────────────────────────────────────────┘</div>
+        </div>
+      </div>
+
+      <!-- 2. MONITORED INVENTORY -->
+      <div class="section" id="devices">
+        <div class="section-title">
+          <div class="s-icon s-green">📊</div>
+          2. Monitored Devices Inventory
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The system actively monitors 7 inventory nodes defined in the PostgreSQL database:
+        </p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Device Name</th>
+              <th>IP Address</th>
+              <th>Device Type</th>
+              <th>Monitoring Method</th>
+              <th>Poll Frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td><code>WAN_Gateway</code></td>
+              <td><code>8.8.8.8</code></td>
+              <td><span class="badge badge-b">WAN</span></td>
+              <td>ICMP Ping Latency Check</td>
+              <td>Every 5 seconds</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td><code>Cisco_Firewall</code></td>
+              <td><code>192.168.100.1</code></td>
+              <td><span class="badge badge-g">Firewall</span></td>
+              <td>SNMP v2c + Syslog UDP 514 (via VPN)</td>
+              <td>5s Poll / Instant Log</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td><code>Core_Switch</code></td>
+              <td><code>192.168.100.2</code></td>
+              <td><span class="badge badge-g">Core Switch</span></td>
+              <td>SNMP v2c + Syslog UDP 514 (via VPN)</td>
+              <td>5s Poll / Instant Log</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td><code>Access_Switch</code></td>
+              <td><code>192.168.10.252</code></td>
+              <td><span class="badge badge-g">Switch</span></td>
+              <td>SNMP v2c + Syslog UDP 514 (via VPN)</td>
+              <td>5s Poll / Instant Log</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td><code>PC1</code></td>
+              <td><code>192.168.10.10</code></td>
+              <td><span class="badge badge-b">PC Client</span></td>
+              <td>ICMP Ping Reachability (VLAN 10)</td>
+              <td>Every 5 seconds</td>
+            </tr>
+            <tr>
+              <td><strong>6</strong></td>
+              <td><code>PC2</code></td>
+              <td><code>192.168.20.10</code></td>
+              <td><span class="badge badge-b">PC Client</span></td>
+              <td>ICMP Ping Reachability (VLAN 20)</td>
+              <td>Every 5 seconds</td>
+            </tr>
+            <tr>
+              <td><strong>7</strong></td>
+              <td><code>PC3</code></td>
+              <td><code>192.168.30.10</code></td>
+              <td><span class="badge badge-b">PC Client</span></td>
+              <td>ICMP Ping Reachability (VLAN 30)</td>
+              <td>Every 5 seconds</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 3. IPSEC VPN PIPELINE -->
+      <div class="section" id="vpn-setup">
+        <div class="section-title">
+          <div class="s-icon s-purple">🔒</div>
+          3. IPsec VPN Tunnel Infrastructure Setup
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The IPsec VPN tunnel routes private lab subnets (<code>192.168.0.0/16</code>) directly to the Ubuntu VPS (<code>72.62.76.1/32</code>).
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">VPS Configuration: /etc/ipsec.conf (strongSwan)</span></div>
+            <span class="loc-pill lp-vps">🌐 VPS Server</span>
+          </div>
+          <div class="code-body">config setup
+    charondebug="ike 2, knl 2, cfg 2"
+    uniqueids=no
+
+conn vps-to-eve-lab
+    authby=secret
+    auto=add                       <span class="cm"># Wait as responder for incoming IKEv2 connection</span>
+    keyexchange=ikev2
+    left=72.62.76.1                <span class="cm"># Public VPS IP</span>
+    leftsubnet=72.62.76.1/32
+    right=%any                     <span class="cm"># Accepts EVE-NG NAT/WAN IP</span>
+    rightid=%any
+    rightsubnet=192.168.0.0/16     <span class="cm"># Route private lab subnets across tunnel</span>
+    ike=aes256-sha256-modp2048
+    esp=aes256-sha256</div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Cisco Firewall CLI Configuration (EVE-NG)</span></div>
+            <span class="loc-pill lp-cs">🔌 Cisco Device</span>
+          </div>
+          <div class="code-body">crypto ikev2 policy 10
+ proposal aes-256 sha256 modp2048
+exit
+
+crypto ikev2 keyring IPSEC-KEY
+ peer VPS-SERVER
+  address 72.62.76.1
+  pre-shared-key darn@2026
+ exit
+exit
+
+crypto ikev2 profile IKEV2-PROFILE
+ match identity remote address 72.62.76.1 255.255.255.255
+ identity local ip 192.168.43.253
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local IPSEC-KEY
+exit
+
+crypto map IPSEC-MAP 10 ipsec-isakmp
+ set peer 72.62.76.1
+ set transform-set TS-AES256-SHA256
+ set ikev2 profile IKEV2-PROFILE
+ match address 100
+exit
+
+interface GigabitEthernet0/0
+ crypto map IPSEC-MAP
+exit</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 4. SNMP TELEMETRY ENGINE -->
+      <div class="section" id="backend-snmp">
+        <div class="section-title">
+          <div class="s-icon s-teal">📡</div>
+          4. Real-Time SNMP Telemetry Polling Engine
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The backend service <code>snmpService.js</code> runs inside the <code>netmonitor_backend</code> Docker container. Every <strong>5 seconds</strong>, it queries target Cisco devices across the active IPsec VPN tunnel using SNMP v2c.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">backend/services/snmpService.js — Target Cisco OIDs</span></div>
+            <span class="loc-pill lp-vps">🌐 VPS Backend</span>
+          </div>
+          <div class="code-body"><span class="cm">// Target OIDs queried via SNMP v2c:</span>
+const oids = [
+  <span class="cs">'1.3.6.1.2.1.1.5.0'</span>,        <span class="cm">// sysName: Device Hostname (e.g. Core_switch)</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.56.0'</span>,   <span class="cm">// cpmCPUTotal5sec: Cisco 5-second CPU utilization (%)</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.8.0'</span>,    <span class="cm">// ciscoMemoryPoolFree: Free RAM (bytes)</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.9.0'</span>     <span class="cm">// ciscoMemoryPoolUsed: Used RAM (bytes)</span>
+];
+
+<span class="cm">// Calculation formula for Memory Usage %:</span>
+let mem = <span class="cv">0</span>;
+if (usedRam + freeRam > <span class="cv">0</span>) {
+  mem = Math.round((usedRam / (usedRam + freeRam)) * <span class="cv">100</span>);
+}</div>
+        </div>
+
+        <div class="box bb">
+          <div class="bx-icon">⚙️</div>
+          <div>
+            <strong>Strict Real Mode (`ENABLE_SIMULATOR=false`)</strong>:
+            If SNMP polling fails or times out, the backend marks the device status as <code>offline</code> and records <code>0%</code> CPU/Memory utilization in PostgreSQL.
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 5. SYSLOG UDP 514 ENGINE -->
+      <div class="section" id="backend-syslog">
+        <div class="section-title">
+          <div class="s-icon s-yellow">📜</div>
+          5. Syslog Event Receiver (UDP Port 514)
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The service <code>syslogService.js</code> listens on <strong>UDP 514</strong> on the VPS. It processes incoming Cisco syslog RFC 5424 / RFC 3164 messages in real time (0s latency).
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">backend/services/syslogService.js — Ingestion Pipeline</span></div>
+            <span class="loc-pill lp-vps">🌐 VPS Backend</span>
+          </div>
+          <div class="code-body"><span class="cm">1. Listener: UDP 514 Socket binds to process incoming logs</span>
+<span class="cm">2. Header Parsing: Extracts priority header `<PRI>`</span>
+   facNum = Math.floor(priVal / 8);   <span class="cm">/* Facility e.g. local0, daemon */</span>
+   sevNum = priVal % 8;              <span class="cm">/* Severity e.g. info, warning, err */</span>
+
+<span class="cm">3. Device Identification: Maps rinfo.address sender IP to database dev_id</span>
+<span class="cm">4. Persistence: Executes `INSERT INTO syslogs (dev_id, facility, severity, log_message)`</span>
+<span class="cm">5. Instant Broadcast: Pushes WebSocket event `{ type: 'syslog', data: { syslog, device } }`</span></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 6. POSTGRESQL SCHEMA -->
+      <div class="section" id="database">
+        <div class="section-title">
+          <div class="s-icon s-blue">💾</div>
+          6. PostgreSQL Persistence Layer (`documents/db.sql`)
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Table Name</th>
+              <th>Primary Key</th>
+              <th>Description & Key Columns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>users</code></td>
+              <td><code>user_id</code></td>
+              <td>Authentication &amp; RBAC (<code>username</code>, <code>password</code> bcrypt, <code>role</code>)</td>
+            </tr>
+            <tr>
+              <td><code>devices</code></td>
+              <td><code>dev_id</code></td>
+              <td>Inventory catalog (<code>dev_name</code>, <code>ip_address</code>, <code>device_type</code>, <code>is_active</code>)</td>
+            </tr>
+            <tr>
+              <td><code>status_logs</code></td>
+              <td><code>log_id</code></td>
+              <td>Telemetry history (<code>dev_id</code>, <code>status</code>, <code>cpu_usage</code>, <code>memory_usage</code>, <code>checked_at</code>)</td>
+            </tr>
+            <tr>
+              <td><code>syslogs</code></td>
+              <td><code>sys_id</code></td>
+              <td>Event logs (<code>dev_id</code>, <code>facility</code>, <code>severity</code>, <code>log_message</code>, <code>timestamp</code>)</td>
+            </tr>
+            <tr>
+              <td><code>recipients</code></td>
+              <td><code>rec_id</code></td>
+              <td>Alert target channels (Telegram Chat IDs, Email addresses)</td>
+            </tr>
+            <tr>
+              <td><code>notification_settings</code></td>
+              <td><code>set_id</code></td>
+              <td>Alert thresholds &amp; cooldown timers per device</td>
+            </tr>
+            <tr>
+              <td><code>alert_history</code></td>
+              <td><code>alert_id</code></td>
+              <td>Audit log of sent incidents &amp; telegram notifications</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 7. WEBSOCKET REAL-TIME -->
+      <div class="section" id="websocket">
+        <div class="section-title">
+          <div class="s-icon s-purple">⚡</div>
+          7. Real-Time WebSocket Messaging Protocol
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The server opens a WebSocket endpoint at <code>ws://72.62.76.1:5000</code>. It dispatches two primary message types to connected clients:
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">WebSocket Payload Formats</span></div>
+            <span class="loc-pill lp-vps">🌐 VPS WebSocket</span>
+          </div>
+          <div class="code-body"><span class="cm">// Type 1: Telemetry Update Payload (Every 5 seconds)</span>
+{
+  "type": "telemetry",
+  "data": {
+    "devices": [
+      {
+        "id": 3,
+        "name": "Core_Switch",
+        "ipAddress": "192.168.100.2",
+        "status": "online",
+        "cpuUsage": 28,
+        "memoryUsage": 35,
+        "latency": 1
+      }
+    ],
+    "alerts": []
+  }
+}
+
+<span class="cm">// Type 2: Syslog Event Payload (Instant / 0s)</span>
+{
+  "type": "syslog",
+  "data": {
+    "syslog": {
+      "sys_id": 102,
+      "dev_id": 3,
+      "facility": "local0",
+      "severity": "notice",
+      "log_message": "%LINK-3-UPDOWN: Interface GigabitEthernet0/1, changed state to up"
+    }
+  }
+}</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 8. FRONTEND RENDERING -->
+      <div class="section" id="frontend">
+        <div class="section-title">
+          <div class="s-icon s-teal">💻</div>
+          8. Frontend UI Rendering & State Architecture (`frontend/src/App.tsx`)
+        </div>
+        <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
+          The React SPA application is built with Vite, TypeScript, and TailwindCSS:
+        </p>
+
+        <ul style="padding-left:20px;font-size:14px;color:var(--dim);line-height:2">
+          <li><strong>Dynamic Host Resolution</strong>: Automatically resolves API base to <code>http://72.62.76.1:5000/api</code> and WS base to <code>ws://72.62.76.1:5000</code>.</li>
+          <li><strong>Session Persistence</strong>: User authentication state is stored in <code>localStorage.netmonitor_authenticated</code>, preserving session across browser refreshes.</li>
+          <li><strong>Live Component Updates</strong>:
+            <ul>
+              <li><strong>Topology Map Card View</strong>: Glowing SVGs change color dynamically (Green = Online, Yellow = Warning, Red = Offline).</li>
+              <li><strong>Telemetry Gauges</strong>: Dynamic CPU and RAM utilization progress bars update every 5s.</li>
+              <li><strong>Syslog Terminal View</strong>: Renders incoming syslogs with severity color coding (Emergency/Crit = Red, Warning = Yellow, Info = Blue).</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 9. SUMMARY -->
+      <div class="section" id="summary">
+        <div class="section-title">
+          <div class="s-icon s-green">✅</div>
+          9. Software Engineering Summary
+        </div>
+
+        <div class="box bg">
+          <div class="bx-icon">🚀</div>
+          <div>
+            <strong>Production State Verified</strong><br/>
+            The system is fully operational in <strong>Real Mode</strong> (`ENABLE_SIMULATOR=false`). Private lab subnets (`192.168.100.x`) are routed across the established IKEv2 IPsec VPN tunnel (`72.62.76.1/32 === 192.168.100.0/24`). Real SNMP polling occurs every 5 seconds, real UDP 514 syslogs are ingested instantly, and live WebSockets keep the operator dashboard updated without requiring page refreshes.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
