@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -30,6 +28,9 @@ services:
       DB_NAME: netmonitor
       DB_PASSWORD: postgres
       DB_PORT: 5432
+      ENABLE_SIMULATOR: 'true'
+      SNMP_COMMUNITY: 'darn@2026'
+      SYSLOG_PORT: 514
     depends_on:
       - db
 
