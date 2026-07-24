@@ -28,7 +28,7 @@ services:
       DB_NAME: netmonitor
       DB_PASSWORD: postgres
       DB_PORT: 5432
-      ENABLE_SIMULATOR: 'true'
+      ENABLE_SIMULATOR: 'false'
       SNMP_COMMUNITY: 'darn@2026'
       SYSLOG_PORT: 514
     depends_on:
