@@ -7,16 +7,33 @@
 
 const https = require('https');
 const path = require('path');
+const fs = require('fs');
 
-// Try loading dotenv if present
-try {
-  require('dotenv').config({ path: path.join(__dirname, '.env') });
-} catch (e) {
-  // Ignore if dotenv is not available
-}
+// Zero-dependency fallback to parse .env file if process.env is not populated
+const loadEnvFile = (envPath) => {
+  try {
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, ...vals] = trimmed.split('=');
+          const val = vals.join('=').trim().replace(/^["']|["']$/g, '');
+          if (key && val && !process.env[key.trim()]) {
+            process.env[key.trim()] = val;
+          }
+        }
+      });
+    }
+  } catch (e) { }
+};
+
+loadEnvFile(path.join(__dirname, '.env'));
+loadEnvFile(path.join(__dirname, '..', '.env'));
+loadEnvFile(path.join(process.cwd(), '.env'));
 
 const botToken = process.argv[2] || process.env.TELEGRAM_BOT_TOKEN;
-const chatId   = process.argv[3] || process.env.TELEGRAM_CHAT_ID;
+const chatId = process.argv[3] || process.env.TELEGRAM_CHAT_ID;
 
 if (!botToken || !chatId) {
   console.log('\n❌ ERROR: Missing Telegram credentials!');
