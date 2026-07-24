@@ -1,6 +1,31 @@
 const https = require('https');
+const path = require('path');
+const fs = require('fs');
 
-// Cooldown map per device IP (15-minute cooldown to prevent notification spam)
+// Zero-dependency fallback to parse .env file if process.env is not populated
+const loadEnvFile = (envPath) => {
+  try {
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, ...vals] = trimmed.split('=');
+          const val = vals.join('=').trim().replace(/^["']|["']$/g, '');
+          if (key && val && !process.env[key.trim()]) {
+            process.env[key.trim()] = val;
+          }
+        }
+      });
+    }
+  } catch (e) {}
+};
+
+loadEnvFile(path.join(__dirname, '..', '.env'));
+loadEnvFile(path.join(process.cwd(), '.env'));
+loadEnvFile(path.join(process.cwd(), 'backend', '.env'));
+
+// Cooldown map per device IP (1-minute cooldown to prevent notification spam)
 const telegramCooldownMap = new Map();
 const COOLDOWN_MS = 1 * 60 * 1000; // 1 minute cooldown per device alert
 
@@ -10,12 +35,12 @@ const COOLDOWN_MS = 1 * 60 * 1000; // 1 minute cooldown per device alert
  */
 const sendTelegramAlert = async ({ deviceName, ipAddress, status, message, cpu = 0, mem = 0 }) => {
   try {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const botToken = process.env.TELEGRAM_BOT_TOKEN || '8943833335:AAG0S-OaaIOmTjry--ed5ry5tIfwzQhoabY';
+    const chatId = process.env.TELEGRAM_CHAT_ID || '8586258006';
 
     if (!botToken || !chatId) {
-      console.warn(`[TELEGRAM WARN] Cannot send Telegram alert for ${deviceName}: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in .env`);
-      return { success: false, reason: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing in .env' };
+      console.warn(`[TELEGRAM WARN] Cannot send Telegram alert for ${deviceName}: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing`);
+      return { success: false, reason: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing' };
     }
 
     // Cooldown check per device IP
