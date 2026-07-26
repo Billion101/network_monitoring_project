@@ -1,0 +1,39 @@
+ໂຄງສ້າງການສະແດງຜົນ LOG ບົນ DASHBOARD
+                 NetMonitor / DARN Server (Web Application)
+================================================================================
+
+1. WIDGET ທີ 1: RECENT EVENT & ALERT LOGS (ລາຍການເຫດການສຸກເສີນຫຼ້າສຸດ)
+--------------------------------------------------------------------------------
+* ບົດບາດ: ເປັນ Widget ຫຼັກບົນໜ້າ Main Dashboard ທີ່ສະແດງ Feed ຫຼື ຕາຕະລາງເຫດການ 
+          ສຳຄັນ 5-10 ລາຍການຫຼ້າສຸດ ເພື່ອໃຫ້ Admin ເຫັນຄວາມຜິດປົກກະຕິໄດ້ທັນທີ.
+* ໂຄງສ້າງຂໍ້ມູນທີ່ສະແດງ (Columns):
+  - Timestamp: ວັນທີ ແລະ ເວລາ ເກີດເຫດ (ເຊັ່ນ: 03/07/2026 13:41:00)
+  - Device Name / IP: ຊື່ອຸປະກອນ ແລະ ໝາຍເລກ IP Address (ເຊັ່ນ: Cisco Firewall - 192.168.100.1)
+  - Severity: ລະດັບຄວາມຮຸນແຮງ ແຍກຕາມສີ (CRITICAL 🔴, WARNING 🟠, INFO 🔵)
+  - Message Details: ຂໍ້ຄວາມສະຫຼຸບບັນຫາ (ເຊັ່ນ: Ping connection timed out after 3 retries)
+  - Ack Status: ສະຖານະການຮັບຊາບ ແລະ ຕອບໂຕ້ (Pending 🔴 / Acknowledged 🟢)
+
+--------------------------------------------------------------------------------
+
+2. WIDGET ທີ 2: LIVE SYSLOG STREAM (ຂໍ້ຄວາມ LOG ສົດຈາກອຸປະກອນ)
+--------------------------------------------------------------------------------
+* ບົດບາດ: ເປັນ Widget ຫຼື Tab ຍ່ອຍ (Console Style) ບົນໜ້າ Logs Page ເພື່ອສະແດງ Log 
+          ດິບ (Raw Messages) ທີ່ສົ່ງມາຈາກ Switch/Firewall ຜ່ານ UDP Port 514.
+* ໂຄງສ້າງຂໍ້ມູນທີ່ສະແດງ:
+  - Real-time Stream: ສະແດງຂໍ້ຄວາມແລ່ນແບບ Real-time ຜ່ານ WebSockets (Socket.io) 
+    ໂດຍບໍ່ຕ້ອງ Refresh ໜ້າຈໍ
+  - Facility & Severity: ລະບຸ Header ຂອງ Cisco IOS (ເຊັ່ນ: %LINK-3-UPDOWN, %SYS-5-CONFIG_I)
+  - Raw Message Text: ຂໍ້ຄວາມເຕັມຈາກອຸປະກອນ (ເຊັ່ນ: Interface Ethernet0/0, changed state to down)
+  - Interactive Filter Bar: ແຖບຄົ້ນຫາ ແລະ ກັ່ນຕອງ Log ສະເພາະ IP/Node ຫຼື ຕາມ Severity
+
+--------------------------------------------------------------------------------
+
+3. WIDGET ທີ 3: HISTORICAL PERFORMANCE LOGS (ກຣາຟສະຖິຕິຍ້ອນຫຼັງ)
+--------------------------------------------------------------------------------
+* ບົດບາດ: ເປັນ Widget ສະແດງຜົນໃນຮູບແບບ Line Chart (ກຣາຟເສັ້ນ) ໂດຍດຶງຂໍ້ມູນມາຈາກ 
+          ຕາຕະລາງ status_logs ເພື່ອໃຊ້ໃນການເຮັດ Root Cause Analysis ແລະ ເບິ່ງທ່າອ່ຽງ.
+* ໂຄງສ້າງຂໍ້ມູນທີ່ສະແດງ:
+  - Latency / Response Time Chart: ກຣາຟເສັ້ນສະແດງຄ່າຄວາມໜ່ວງ (ms) ຍ້ອນຫຼັງ (24 ຊົ່ວໂມງ / 7 ວັນ)
+  - CPU & Memory Trend Chart: ກຣາຟສະແດງເປີເຊັນການນຳໃຊ້ CPU/RAM ຍ້ອນຫຼັງ ເພື່ອກວດເຊັກ 
+    ຈຸດທີ່ CPU ເຄີຍພຸ່ງສູງ (>90%)
+  - Availability Statistics: ສະຖິຕິເປີເຊັນ Uptime ຂອງອຸປະກອນ (ເຊັ່ນ: 99.8% Availability)

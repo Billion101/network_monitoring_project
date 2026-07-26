@@ -580,12 +580,12 @@ exit</div>
           4. Real-Time SNMP Telemetry Polling Engine
         </div>
         <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
-          The backend service <code>snmpService.js</code> runs inside the <code>netmonitor_backend</code> Docker container. Every <strong>5 seconds</strong>, it queries target Cisco devices across the active IPsec VPN tunnel using SNMP v2c.
+          The backend service <code>snmpService.js</code> runs inside the <code>netmonitor_backend</code> Docker container. Every <strong>2 seconds</strong>, it queries target Cisco devices concurrently in <strong>parallel via Promise.all</strong> across the active IPsec VPN tunnel using SNMP v2c.
         </p>
 
         <div class="code-block">
           <div class="code-header">
-            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">backend/services/snmpService.js — Target Cisco OIDs & Real Latency</span></div>
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">backend/services/snmpService.js — Target Cisco OIDs & Telemetry Metrics</span></div>
             <span class="loc-pill lp-vps">🌐 VPS Backend</span>
           </div>
           <div class="code-body"><span class="cm">// Target OIDs queried via SNMP v2c:</span>
@@ -593,17 +593,23 @@ const oids = [
   <span class="cs">'1.3.6.1.2.1.1.5.0'</span>,        <span class="cm">// sysName: Real Device Hostname (e.g. Core_switch)</span>
   <span class="cs">'1.3.6.1.4.1.9.2.1.56.0'</span>,   <span class="cm">// cpmCPUTotal5sec: Cisco 5-second CPU utilization (%)</span>
   <span class="cs">'1.3.6.1.4.1.9.2.1.8.0'</span>,    <span class="cm">// ciscoMemoryPoolFree: Free RAM (bytes)</span>
-  <span class="cs">'1.3.6.1.4.1.9.2.1.9.0'</span>     <span class="cm">// ciscoMemoryPoolUsed: Used RAM (bytes)</span>
+  <span class="cs">'1.3.6.1.4.1.9.2.1.9.0'</span>,    <span class="cm">// ciscoMemoryPoolUsed: Used RAM (bytes)</span>
+  <span class="cs">'1.3.6.1.2.1.1.3.0'</span>,        <span class="cm">// sysUpTime: Real Hardware Uptime (timeticks)</span>
+  <span class="cs">'1.3.6.1.2.1.2.2.1.10.1'</span>,   <span class="cm">// ifInOctets.1: Inbound Traffic Octets</span>
+  <span class="cs">'1.3.6.1.2.1.2.2.1.16.1'</span>    <span class="cm">// ifOutOctets.1: Outbound Traffic Octets</span>
 ];
 
 <span class="cm">// 1. Measured Round-Trip Response Latency (ms):</span>
 const startTime = Date.now();
 session.get(oids, (err, varbinds) => {
   const responseTime = Date.now() - startTime; <span class="cm">/* Real round-trip ms */</span>
-  ...
 });
 
-<span class="cm">// 2. Dynamic Hostname Synchronization:</span>
+<span class="cm">// 2. Real-Time Mbps Bandwidth Calculation:</span>
+trafficIn  = Math.round(((inOctets  - prevInOctets)  * 8) / (timeDiffSec * 1000000));
+trafficOut = Math.round(((outOctets - prevOutOctets) * 8) / (timeDiffSec * 1000000));
+
+<span class="cm">// 3. Dynamic Hostname Synchronization:</span>
 if (snmpResult.data.sysName) {
   await DeviceModel.updateDeviceName(dev.id, snmpResult.data.sysName);
 }</div>
@@ -612,8 +618,8 @@ if (snmpResult.data.sysName) {
         <div class="box bb">
           <div class="bx-icon">⚙️</div>
           <div>
-            <strong>Strict Real Mode (`ENABLE_SIMULATOR=false`)</strong>:
-            All fake random math (<code>Math.random()</code>) is disabled. Polled devices record 100% real CPU, real RAM, and real round-trip SNMP latency (ms). If SNMP polling fails or times out, the backend marks the device status as <code>offline</code> with <code>0%</code> CPU/Memory.
+            <strong>Strict Real Mode &amp; High-Speed Execution</strong>:
+            All fake random math is disabled. Devices are polled concurrently in parallel every 2 seconds with an 800ms–1500ms socket timeout. Core infrastructure devices (<code>Cisco_Firewall</code>, <code>Core_switch</code>, <code>Access_Switch</code>) report 100% real CPU, RAM, latency, uptime, and Mbps traffic.
           </div>
         </div>
       </div>
@@ -660,7 +666,7 @@ if (snmpResult.data.sysName) {
             <tr>
               <th>Table Name</th>
               <th>Primary Key</th>
-              <th>Description & Key Columns</th>
+              <th>Description & Maintenance Policy</th>
             </tr>
           </thead>
           <tbody>
@@ -677,7 +683,7 @@ if (snmpResult.data.sysName) {
             <tr>
               <td><code>status_logs</code></td>
               <td><code>log_id</code></td>
-              <td>Telemetry history (<code>dev_id</code>, <code>status</code>, <code>cpu_usage</code>, <code>memory_usage</code>, <code>checked_at</code>)</td>
+              <td>Telemetry history (<code>dev_id</code>, <code>status</code>, <code>cpu_usage</code>, <code>memory_usage</code>, <code>traffic_in</code>, <code>traffic_out</code>). <strong>Throttled DB Writes (every 10s) + Automated Hourly 24-Hour Pruning Routine (`pruneOldStatusLogs`)</strong>.</td>
             </tr>
             <tr>
               <td><code>syslogs</code></td>
@@ -705,53 +711,32 @@ if (snmpResult.data.sysName) {
 
       <div class="divider"></div>
 
-      <!-- 7. WEBSOCKET REAL-TIME -->
+      <!-- 7. WEBSOCKET & TELEGRAM ALERTS -->
       <div class="section" id="websocket">
         <div class="section-title">
           <div class="s-icon s-purple">⚡</div>
-          7. Real-Time WebSocket Messaging Protocol
+          7. Real-Time WebSocket & Telegram Notification Engine
         </div>
         <p style="font-size:14px;color:var(--dim);margin-bottom:16px;">
-          The server opens a WebSocket endpoint at <code>ws://72.62.76.1:5000</code>. It dispatches two primary message types to connected clients:
+          The server dispatches real-time WebSocket updates to connected browsers every <strong>2 seconds</strong> and manages automated Telegram alerts to NOC operators:
         </p>
 
         <div class="code-block">
           <div class="code-header">
-            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">WebSocket Payload Formats</span></div>
-            <span class="loc-pill lp-vps">🌐 VPS WebSocket</span>
+            <div class="ch-l"><div class="dots"><span class="dot dr"></span><span class="dot dy"></span><span class="dot dg"></span></div><span class="file-name">Telegram Bot Notification & Recovery Rules</span></div>
+            <span class="loc-pill lp-vps">🌐 VPS Telegram Bot</span>
           </div>
-          <div class="code-body"><span class="cm">// Type 1: Telemetry Update Payload (Every 5 seconds)</span>
-{
-  "type": "telemetry",
-  "data": {
-    "devices": [
-      {
-        "id": 3,
-        "name": "Core_Switch",
-        "ipAddress": "192.168.100.2",
-        "status": "online",
-        "cpuUsage": 28,
-        "memoryUsage": 35,
-        "latency": 1
-      }
-    ],
-    "alerts": []
-  }
-}
+          <div class="code-body"><span class="cm">// 1. Device Isolation:</span>
+Alerts are filtered ONLY for core infrastructure nodes (Firewall, Core Switch, Access Switch).
+Client PCs (PC1, PC2, PC3) are excluded.
 
-<span class="cm">// Type 2: Syslog Event Payload (Instant / 0s)</span>
-{
-  "type": "syslog",
-  "data": {
-    "syslog": {
-      "sys_id": 102,
-      "dev_id": 3,
-      "facility": "local0",
-      "severity": "notice",
-      "log_message": "%LINK-3-UPDOWN: Interface GigabitEthernet0/1, changed state to up"
-    }
-  }
-}</div>
+<span class="cm">// 2. Incident & Recovery Triggers:</span>
+🔴 Critical Incident: Triggered when an infrastructure device goes OFFLINE.
+🟢 Recovery Alert:  Triggered instantly when an offline device comes back ONLINE.
+⚠️ High Load Alert: Triggered when CPU > 85% or Memory > 85%.
+
+<span class="cm">// 3. Cooldown Protection:</span>
+1-minute cooldown per device IP prevents notification spamming during outages.</div>
         </div>
       </div>
 
@@ -769,16 +754,11 @@ if (snmpResult.data.sysName) {
 
         <ul style="padding-left:20px;font-size:14px;color:var(--dim);line-height:2">
           <li><strong>Dynamic Host Resolution</strong>: Automatically resolves API base to <code>http://72.62.76.1:5000/api</code> and WS base to <code>ws://72.62.76.1:5000</code>.</li>
-          <li><strong>Immediate Real Data Load</strong>: On page load/mount, executes <code>GET /api/devices</code> immediately via REST API to populate 100% real database status within milliseconds (no fake placeholder values).</li>
+          <li><strong>Immediate Real Data Load</strong>: On page load/mount, executes <code>GET /api/devices</code> immediately via REST API to populate 100% real database status within milliseconds.</li>
+          <li><strong>Real-Time Toast Notifications</strong>: Displays floating top-right notification banners for <code>🔴 Critical Offline</code> incidents and <code>🟢 System Recovery</code> events.</li>
+          <li><strong>Dynamic Header Alert Badges</strong>: Top header Bell icon and Alerts tab render a pulsing red counter badge indicating currently offline nodes.</li>
           <li><strong>Session Persistence</strong>: User authentication state is stored in <code>localStorage.netmonitor_authenticated</code>, preserving session across browser refreshes.</li>
-          <li><strong>Navigation Architecture</strong>: Sidebar navigation includes <strong>Dashboard</strong>, <strong>Alerts</strong>, <strong>Nodes</strong>, and <strong>Settings</strong> (Map view removed).</li>
-          <li><strong>Live Component Updates</strong>:
-            <ul>
-              <li><strong>Node Telemetry Cards</strong>: Glowing SVG device cards update dynamically (Green = Online, Red = Offline).</li>
-              <li><strong>Telemetry Gauges</strong>: Real CPU and RAM utilization progress bars update every 5s.</li>
-              <li><strong>Syslog Terminal View</strong>: Renders incoming syslogs with severity color coding (Emergency/Crit = Red, Warning = Yellow, Info = Blue).</li>
-            </ul>
-          </li>
+          <li><strong>Navigation Architecture</strong>: Sidebar navigation includes <strong>Dashboard</strong>, <strong>Alerts</strong>, <strong>Nodes</strong>, and <strong>Settings</strong>.</li>
         </ul>
       </div>
 
