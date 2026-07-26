@@ -65,6 +65,7 @@ const PCIcon = ({ status }: { status: string }) => {
 
 // Default setup values used as placeholders while API loads
 const INITIAL_DEVICES: NetworkDevice[] = [
+  { id: '1', name: 'WAN Gateway', type: 'wan', status: 'online', ipAddress: '', macAddress: '00:0A:95:9D:68:16', uptime: '10d 2h 15m', cpuUsage: 10, memoryUsage: 25, trafficIn: 0, trafficOut: 0, latency: 5, description: 'External Gateway Connection' },
   { id: '2', name: 'Cisco Firewall', type: 'firewall', status: 'offline', ipAddress: '192.168.100.1', macAddress: '00:14:22:01:23:45', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Perimeter Firewall Node' },
   { id: '3', name: 'Core Switch', type: 'core_switch', status: 'offline', ipAddress: '192.168.100.2', macAddress: '3C:5A:B4:EF:01:A2', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Backbone L3 Core Switch' },
   { id: '4', name: 'Access Switch', type: 'switch', status: 'offline', ipAddress: '192.168.10.252', macAddress: '70:69:79:AB:CD:EF', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Access Layer Switch' },
@@ -130,7 +131,7 @@ function App() {
   // Toggle state to switch between real database API mode and local mockup sandbox mode
   const [apiMode, setApiMode] = useState<'real' | 'mock'>(DEFAULT_API_MODE as 'real' | 'mock');
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'alerts' | 'nodes' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'alerts' | 'nodes'>('dashboard');
   const [devices, setDevices] = useState<NetworkDevice[]>(INITIAL_DEVICES);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('3'); // Defaults to Core Switch ID
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,12 +188,13 @@ function App() {
         if (res.ok) {
           const devData = await res.json();
           if (devData && Array.isArray(devData)) {
-            const mapped = devData.filter((d: any) => d.type !== 'wan').map((d: any) => ({
+            const mapped = devData.map((d: any) => ({
               ...d,
               id: String(d.id),
-              status: d.type === 'pc' ? 'online' : d.status,
-              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.cpuUsage,
-              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
+              ipAddress: d.type === 'wan' ? '' : d.ipAddress,
+              status: d.type === 'wan' || d.type === 'pc' ? 'online' : d.status,
+              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.type === 'wan' ? (d.cpuUsage || 10) : d.cpuUsage,
+              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.type === 'wan' ? (d.memoryUsage || 25) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
             updateDevicesAndCheckTransitions(mapped);
@@ -241,12 +243,13 @@ function App() {
           if (message.type === 'init' || message.type === 'telemetry') {
             const { devices: devData, alerts: alertData } = message.data;
 
-            const mapped = devData.filter((d: any) => d.type !== 'wan').map((d: any) => ({
+            const mapped = devData.map((d: any) => ({
               ...d,
               id: String(d.id),
-              status: d.type === 'pc' ? 'online' : d.status,
-              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.cpuUsage,
-              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
+              ipAddress: d.type === 'wan' ? '' : d.ipAddress,
+              status: d.type === 'wan' || d.type === 'pc' ? 'online' : d.status,
+              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.type === 'wan' ? (d.cpuUsage || 10) : d.cpuUsage,
+              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.type === 'wan' ? (d.memoryUsage || 25) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
             updateDevicesAndCheckTransitions(mapped);
@@ -581,7 +584,6 @@ function App() {
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'alerts', label: 'Alerts', icon: AlertTriangle, badge: offlineDevicesCount > 0 ? offlineDevicesCount : undefined },
             { id: 'nodes', label: 'Nodes', icon: Network },
-            { id: 'settings', label: 'Settings', icon: SettingsIcon },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -614,10 +616,6 @@ function App() {
 
         {/* Footer actions in sidebar */}
         <div className="w-full px-3 pt-6 border-t border-slate-800/60 flex flex-col items-center gap-4">
-          <button className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 transition-colors">
-            <SettingsIcon className="w-5 h-5" />
-          </button>
-
           <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center hover:border-slate-600 transition-colors cursor-pointer overflow-hidden group">
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
@@ -752,8 +750,9 @@ function App() {
                 </defs>
 
                 {/* Connection lines linking nodes dynamically */}
-                <line x1="50%" y1="28%" x2="50%" y2="48%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
-                <line x1="50%" y1="48%" x2="50%" y2="68%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
+                <line x1="50%" y1="14%" x2="50%" y2="28%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
+                <line x1="50%" y1="36%" x2="50%" y2="48%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
+                <line x1="50%" y1="56%" x2="50%" y2="68%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
                 <line x1="50%" y1="74%" x2="50%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
                 <line x1="25%" y1="80%" x2="75%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
 
@@ -765,10 +764,24 @@ function App() {
               {/* Node Overlay Elements */}
               <div className="absolute inset-0 w-full h-full flex items-center justify-center">
 
-                {/* 1. Firewall Node */}
+                {/* 1. WAN (Cloud) Node */}
+                <div
+                  onClick={() => setSelectedDeviceId('1')}
+                  className="absolute top-[8%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
+                >
+                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '1'
+                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
+                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
+                    }`}>
+                    <CloudIcon />
+                  </div>
+                  <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">WAN Gateway</span>
+                </div>
+
+                {/* 2. Firewall Node */}
                 <div
                   onClick={() => setSelectedDeviceId('2')}
-                  className="absolute top-[18%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
+                  className="absolute top-[28%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '2'
                     ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
@@ -1098,7 +1111,7 @@ function App() {
                       <tr key={dev.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors text-slate-300 text-sm">
                         <td className="py-4 px-4 font-semibold text-white">{dev.name}</td>
                         <td className="py-4 px-4 uppercase text-xs font-mono">{dev.type}</td>
-                        <td className="py-4 px-4 font-mono">{dev.ipAddress}</td>
+                        <td className="py-4 px-4 font-mono">{dev.type === 'wan' ? '-' : (dev.ipAddress || '-')}</td>
                         <td className="py-4 px-4 font-mono">{dev.macAddress}</td>
                         <td className="py-4 px-4">{dev.uptime}</td>
                         <td className="py-4 px-4">{dev.cpuUsage}%</td>
@@ -1125,36 +1138,7 @@ function App() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="flex-1 p-6 lg:p-8 space-y-6">
-            <div className="glass-panel border border-slate-800 rounded-3xl p-6 max-w-2xl">
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-3">
-                <SettingsIcon className="w-6 h-6 text-green-400" /> NetMonitor Configuration
-              </h2>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">Metrics Polling Interval</label>
-                  <select className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-green-500 w-full max-w-xs">
-                    <option>3.0 Seconds (Realtime Polling)</option>
-                    <option>10.0 Seconds (Standard Polling)</option>
-                    <option>30.0 Seconds (Low Load)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-300 mb-2">Notification Thresholds</label>
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" defaultChecked className="accent-green-500 h-4 w-4 rounded" />
-                    <span className="text-sm text-slate-400">Alert on CPU Usage &gt; 90%</span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-3">
-                    <input type="checkbox" defaultChecked className="accent-green-500 h-4 w-4 rounded" />
-                    <span className="text-sm text-slate-400">Alert on Link Status Disconnects</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        ) : null}
 
       </main>
 
@@ -1175,9 +1159,11 @@ function App() {
                 }`}></span>
             </h2>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 bg-slate-900/80 border border-slate-800 px-2 py-1 rounded-md">
-            IP: {selectedDevice.ipAddress}
-          </span>
+          {selectedDevice.type !== 'wan' && selectedDevice.ipAddress && (
+            <span className="text-[10px] font-mono text-slate-500 bg-slate-900/80 border border-slate-800 px-2 py-1 rounded-md">
+              IP: {selectedDevice.ipAddress}
+            </span>
+          )}
         </div>
 
         {/* Metric Gauges Row */}

@@ -43,19 +43,19 @@ const sendTelegramAlert = async ({ deviceName, ipAddress, status, message, cpu =
       return { success: false, reason: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing' };
     }
 
-    // Cooldown check per device IP
-    const now = Date.now();
-    const lastSent = telegramCooldownMap.get(ipAddress) || 0;
-    if (now - lastSent < COOLDOWN_MS) {
-      console.log(`[TELEGRAM COOLDOWN] Notification for ${deviceName} (${ipAddress}) suppressed (Cooldown active).`);
-      return { success: false, reason: 'Cooldown active' };
-    }
-
     const isOffline = status === 'offline';
     const isOnline = status === 'online';
     const icon = isOffline ? '🔴' : isOnline ? '🟢' : '⚠️';
     const header = isOnline ? 'NETMONITOR RECOVERY' : 'NETMONITOR ALERT';
     const statusText = status.toUpperCase();
+
+    // Cooldown check per device IP (Enforce ONLY for offline/warning alerts; RECOVERY alerts always send immediately!)
+    const now = Date.now();
+    const lastSent = telegramCooldownMap.get(ipAddress) || 0;
+    if (!isOnline && (now - lastSent < COOLDOWN_MS)) {
+      console.log(`[TELEGRAM COOLDOWN] Notification for ${deviceName} (${ipAddress}) suppressed (Cooldown active).`);
+      return { success: false, reason: 'Cooldown active' };
+    }
 
     const formattedMessage = `
 ${icon} <b>[${header}]</b>
@@ -92,8 +92,12 @@ ${isOnline ? `<b>Details:</b> Device recovered and is back ONLINE!` : `<b>CPU:</
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => {
           if (res.statusCode === 200) {
-            console.log(`[TELEGRAM ALERT SENT] Notification sent to chat ${chatId} for ${deviceName}`);
-            telegramCooldownMap.set(ipAddress, now);
+            console.log(`[TELEGRAM ${isOnline ? 'RECOVERY SENT' : 'ALERT SENT'}] Notification sent to chat ${chatId} for ${deviceName} (${statusText})`);
+            if (isOnline) {
+              telegramCooldownMap.delete(ipAddress);
+            } else {
+              telegramCooldownMap.set(ipAddress, now);
+            }
             resolve({ success: true, data: JSON.parse(data) });
           } else {
             console.error(`[TELEGRAM API ERROR] Status Code ${res.statusCode}:`, data);
