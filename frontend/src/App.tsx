@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
   Map as MapIcon,
@@ -141,6 +141,33 @@ function App() {
     out: [0, 0, 0, 0, 0]
   });
 
+  const [toastNotification, setToastNotification] = useState<{ id: number; type: 'offline' | 'online'; title: string; subtitle: string } | null>(null);
+  const prevDeviceStatuses = useRef<{ [key: string]: string }>({});
+
+  const triggerToastNotification = (type: 'offline' | 'online', title: string, subtitle: string) => {
+    const id = Date.now();
+    setToastNotification({ id, type, title, subtitle });
+    setTimeout(() => {
+      setToastNotification(prev => (prev?.id === id ? null : prev));
+    }, 7000);
+  };
+
+  const updateDevicesAndCheckTransitions = (mappedDevices: NetworkDevice[]) => {
+    mappedDevices.forEach((dev) => {
+      const prevStatus = prevDeviceStatuses.current[dev.id];
+      if (prevStatus && prevStatus !== dev.status && dev.type !== 'pc') {
+        if (dev.status === 'offline') {
+          triggerToastNotification('offline', `🔴 Device Offline: ${dev.name}`, `${dev.ipAddress} ping & SNMP timed out`);
+        } else if (dev.status === 'online' && prevStatus === 'offline') {
+          triggerToastNotification('online', `🟢 Device Recovered: ${dev.name}`, `${dev.ipAddress} is back ONLINE!`);
+        }
+      }
+      prevDeviceStatuses.current[dev.id] = dev.status;
+    });
+    setDevices(mappedDevices);
+  };
+
+  const offlineDevicesCount = devices.filter(d => d.status === 'offline' && d.type !== 'pc').length;
   const selectedDevice = devices.find(d => d.id === selectedDeviceId) || devices[2];
 
   // Fetch real device list immediately on mount via REST API
@@ -161,7 +188,7 @@ function App() {
               memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
-            setDevices(mapped);
+            updateDevicesAndCheckTransitions(mapped);
           }
         }
       } catch (err) {
@@ -198,7 +225,7 @@ function App() {
               memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
-            setDevices(mapped);
+            updateDevicesAndCheckTransitions(mapped);
             setAlerts(alertData);
 
             // Dynamically append selected device metrics to trafficHistory in real-time
@@ -528,7 +555,7 @@ function App() {
         <nav className="flex-1 w-full px-3 py-6 space-y-2">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'alerts', label: 'Alerts', icon: AlertTriangle, badge: summary.warning > 0 ? summary.warning : undefined },
+            { id: 'alerts', label: 'Alerts', icon: AlertTriangle, badge: offlineDevicesCount > 0 ? offlineDevicesCount : undefined },
             { id: 'nodes', label: 'Nodes', icon: Network },
             { id: 'settings', label: 'Settings', icon: SettingsIcon },
           ].map((tab) => {
@@ -631,10 +658,16 @@ function App() {
               />
             </div>
 
-            {/* Notification Trigger */}
+            {/* Notification Trigger Badge */}
             <button className="relative w-10 h-10 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:border-slate-700/60 transition-colors">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_#22c55e]"></span>
+              {offlineDevicesCount > 0 ? (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-rose-500 text-white border border-rose-400 shadow-[0_0_12px_#ef4444] animate-pulse">
+                  {offlineDevicesCount}
+                </span>
+              ) : (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_#22c55e]"></span>
+              )}
             </button>
 
             {/* User Dropdown / Logout */}
@@ -1169,6 +1202,31 @@ function App() {
         </div>
 
       </aside>
+
+      {/* 4. Floating Toast Notification Banner */}
+      {toastNotification && (
+        <div className={`fixed top-6 right-6 z-50 p-4 rounded-2xl border shadow-2xl flex items-center gap-4 transition-all duration-500 animate-bounce ${
+          toastNotification.type === 'offline'
+            ? 'bg-slate-950/95 border-rose-500/60 text-rose-200 shadow-[0_0_25px_rgba(239,68,68,0.3)]'
+            : 'bg-slate-950/95 border-green-500/60 text-green-200 shadow-[0_0_25px_rgba(34,197,94,0.3)]'
+        }`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${
+            toastNotification.type === 'offline' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'
+          }`}>
+            {toastNotification.type === 'offline' ? '🔴' : '🟢'}
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-white">{toastNotification.title}</h4>
+            <p className="text-xs text-slate-400">{toastNotification.subtitle}</p>
+          </div>
+          <button 
+            onClick={() => setToastNotification(null)}
+            className="ml-3 text-slate-500 hover:text-white text-xs font-bold px-2 py-1 rounded-lg bg-slate-800/50 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
     </div>
   );

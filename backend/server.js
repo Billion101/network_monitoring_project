@@ -81,6 +81,7 @@ const BASELINES = {
 };
 
 let telemetryCycleCount = 0;
+const previousDeviceStateMap = new Map();
 
 // Periodic telemetry loop polling real devices via SNMP in PARALLEL with simulation fallback
 const runTelemetryLoop = async () => {
@@ -144,6 +145,7 @@ const runTelemetryLoop = async () => {
 
       // Trigger Telegram notification ONLY for core infrastructure devices (firewall, core_switch, switch)
       const isInfrastructure = ['firewall', 'core_switch', 'switch'].includes(dev.type);
+      const prevStatus = previousDeviceStateMap.get(dev.id);
 
       if (status === 'offline' && isInfrastructure) {
         sendTelegramAlert({
@@ -154,6 +156,16 @@ const runTelemetryLoop = async () => {
           cpu: 0,
           mem: 0
         }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
+      } else if (status === 'online' && prevStatus === 'offline' && isInfrastructure) {
+        // Device recovered back to ONLINE
+        sendTelegramAlert({
+          deviceName: dev.name,
+          ipAddress: dev.ipAddress,
+          status: 'online',
+          message: 'Device recovered successfully and is back ONLINE!',
+          cpu,
+          mem
+        }).catch(e => console.error('[TELEGRAM RECOVERY TRIGGER ERROR]', e.message));
       } else if ((cpu > 85 || mem > 85) && isInfrastructure) {
         sendTelegramAlert({
           deviceName: dev.name,
@@ -164,6 +176,9 @@ const runTelemetryLoop = async () => {
           mem
         }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
       }
+
+      // Update state map for next cycle comparison
+      previousDeviceStateMap.set(dev.id, status);
 
       // In simulation mode, randomly generate background syslogs
       if (process.env.ENABLE_SIMULATOR === 'true' && Math.random() < 0.1) {
