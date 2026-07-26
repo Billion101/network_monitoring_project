@@ -109,7 +109,10 @@ const runTelemetryLoop = async () => {
           await DeviceModel.updateDeviceName(dev.id, snmpResult.data.sysName);
         }
 
-        console.log(`[SNMP POLLED REAL] Device ${snmpResult.data.sysName || dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms`);
+        trafficIn = snmpResult.data.trafficIn || 0;
+        trafficOut = snmpResult.data.trafficOut || 0;
+
+        console.log(`[SNMP POLLED REAL] Device ${snmpResult.data.sysName || dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms | Traffic In: ${trafficIn} Mbps, Out: ${trafficOut} Mbps`);
       } else {
         if (process.env.ENABLE_SIMULATOR === 'true' || dev.type === 'pc') {
           // PC devices (PC1, PC2, PC3) show as online mockup for presentation
