@@ -1302,7 +1302,7 @@ function App() {
                 <span className="text-4xl font-extrabold text-white">{selectedDevice.memoryUsage}</span>
                 <span className="text-sm font-semibold text-slate-400 ml-1">%</span>
                 <div className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5">
-                  {(selectedDevice.memoryUsage * 0.32).toFixed(1)} / 32 GB used
+                  {(selectedDevice.memoryUsage * 0.08).toFixed(1)} / 8 GB used
                 </div>
               </div>
             </div>
