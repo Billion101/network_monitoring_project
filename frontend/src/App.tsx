@@ -65,7 +65,6 @@ const PCIcon = ({ status }: { status: string }) => {
 
 // Default setup values used as placeholders while API loads
 const INITIAL_DEVICES: NetworkDevice[] = [
-  { id: '1', name: 'WAN Gateway', type: 'wan', status: 'offline', ipAddress: '8.8.8.8', macAddress: '00:0A:95:9D:68:16', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'External Gateway Connection' },
   { id: '2', name: 'Cisco Firewall', type: 'firewall', status: 'offline', ipAddress: '192.168.100.1', macAddress: '00:14:22:01:23:45', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Perimeter Firewall Node' },
   { id: '3', name: 'Core Switch', type: 'core_switch', status: 'offline', ipAddress: '192.168.100.2', macAddress: '3C:5A:B4:EF:01:A2', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Backbone L3 Core Switch' },
   { id: '4', name: 'Access Switch', type: 'switch', status: 'offline', ipAddress: '192.168.10.252', macAddress: '70:69:79:AB:CD:EF', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Access Layer Switch' },
@@ -188,7 +187,7 @@ function App() {
         if (res.ok) {
           const devData = await res.json();
           if (devData && Array.isArray(devData)) {
-            const mapped = devData.map((d: any) => ({
+            const mapped = devData.filter((d: any) => d.type !== 'wan').map((d: any) => ({
               ...d,
               id: String(d.id),
               status: d.type === 'pc' ? 'online' : d.status,
@@ -242,7 +241,7 @@ function App() {
           if (message.type === 'init' || message.type === 'telemetry') {
             const { devices: devData, alerts: alertData } = message.data;
 
-            const mapped = devData.map((d: any) => ({
+            const mapped = devData.filter((d: any) => d.type !== 'wan').map((d: any) => ({
               ...d,
               id: String(d.id),
               status: d.type === 'pc' ? 'online' : d.status,
@@ -753,9 +752,8 @@ function App() {
                 </defs>
 
                 {/* Connection lines linking nodes dynamically */}
-                <line x1="50%" y1="14%" x2="50%" y2="28%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
-                <line x1="50%" y1="36%" x2="50%" y2="48%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
-                <line x1="50%" y1="56%" x2="50%" y2="68%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
+                <line x1="50%" y1="28%" x2="50%" y2="48%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
+                <line x1="50%" y1="48%" x2="50%" y2="68%" stroke="#10b981" strokeWidth="2.5" className="connection-line" filter="url(#neon-glow-green-line)" />
                 <line x1="50%" y1="74%" x2="50%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
                 <line x1="25%" y1="80%" x2="75%" y2="80%" stroke="#10b981" strokeWidth="2.5" filter="url(#neon-glow-green-line)" />
 
@@ -767,24 +765,10 @@ function App() {
               {/* Node Overlay Elements */}
               <div className="absolute inset-0 w-full h-full flex items-center justify-center">
 
-                {/* 1. WAN (Cloud) Node */}
-                <div
-                  onClick={() => setSelectedDeviceId('1')}
-                  className={`absolute top-[8%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10`}
-                >
-                  <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '1'
-                    ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
-                    : 'border-green-500/40 hover:border-green-400 hover:scale-105'
-                    }`}>
-                    <CloudIcon />
-                  </div>
-                  <span className="mt-2 text-xs font-semibold text-slate-300 tracking-wider group-hover:text-green-400 transition-colors uppercase">WAN</span>
-                </div>
-
-                {/* 2. Firewall Node */}
+                {/* 1. Firewall Node */}
                 <div
                   onClick={() => setSelectedDeviceId('2')}
-                  className="absolute top-[28%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
+                  className="absolute top-[18%] left-[50%] transform -translate-x-1/2 flex flex-col items-center group cursor-pointer z-10"
                 >
                   <div className={`p-4 rounded-2xl glass-panel border transition-all duration-300 ${selectedDeviceId === '2'
                     ? 'border-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.4)] scale-110'
@@ -1305,69 +1289,6 @@ function App() {
                   {(selectedDevice.memoryUsage * 0.08).toFixed(1)} / 8 GB used
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Network Traffic glowing vertical bars */}
-          <div className="glass-panel border border-slate-800 rounded-2xl p-5 flex flex-col">
-            <span className="text-xs font-semibold text-slate-400 mb-4 tracking-wide flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-green-400" /> Network Traffic
-            </span>
-
-            <div className="space-y-1 mb-4">
-              <div className="flex justify-between text-xs font-medium">
-                <span className="text-slate-400">In:</span>
-                <span className="text-green-400 font-bold font-mono">{formatTraffic(selectedDevice.trafficIn)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-medium">
-                <span className="text-slate-400">Out:</span>
-                <span className="text-green-400/90 font-bold font-mono">{formatTraffic(selectedDevice.trafficOut)}</span>
-              </div>
-            </div>
-
-            {/* Glowing Charts layout */}
-            <div className="grid grid-cols-2 gap-4 h-24 mt-2">
-
-              {/* In Traffic Bars */}
-              <div className="flex flex-col justify-end items-center h-full gap-2 relative bg-slate-950/20 border border-slate-900/60 rounded-xl p-2">
-                <div className="flex items-end justify-center w-full gap-1 h-14">
-                  {trafficHistory.in.map((val, idx) => (
-                    <div
-                      key={idx}
-                      style={{ height: `${Math.max(5, val)}%` }}
-                      className="w-1.5 rounded-full bg-gradient-to-t from-green-600 to-green-400 shadow-[0_0_8px_rgba(34,197,94,0.3)] transition-all duration-500 relative"
-                    >
-                      {idx === 2 && (
-                        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 text-green-400 animate-bounce">
-                          ▲
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">In</span>
-              </div>
-
-              {/* Out Traffic Bars */}
-              <div className="flex flex-col justify-end items-center h-full gap-2 relative bg-slate-950/20 border border-slate-900/60 rounded-xl p-2">
-                <div className="flex items-end justify-center w-full gap-1 h-14">
-                  {trafficHistory.out.map((val, idx) => (
-                    <div
-                      key={idx}
-                      style={{ height: `${Math.max(5, val)}%` }}
-                      className="w-1.5 rounded-full bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-500 relative"
-                    >
-                      {idx === 2 && (
-                        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 text-emerald-400 animate-bounce">
-                          ▲
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Out</span>
-              </div>
-
             </div>
           </div>
 

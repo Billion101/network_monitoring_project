@@ -52,20 +52,21 @@ const sendTelegramAlert = async ({ deviceName, ipAddress, status, message, cpu =
     }
 
     const isOffline = status === 'offline';
-    const icon = isOffline ? '🔴' : '⚠️';
+    const isOnline = status === 'online';
+    const icon = isOffline ? '🔴' : isOnline ? '🟢' : '⚠️';
+    const header = isOnline ? 'NETMONITOR RECOVERY' : 'NETMONITOR ALERT';
     const statusText = status.toUpperCase();
 
     const formattedMessage = `
-${icon} <b>[NETMONITOR ALERT]</b>
+${icon} <b>[${header}]</b>
 ───────────────────────
 <b>Device:</b> <code>${deviceName}</code>
 <b>IP Address:</b> <code>${ipAddress}</code>
 <b>Status:</b> <b>${statusText}</b>
-<b>CPU:</b> ${cpu}% | <b>MEM:</b> ${mem}%
-<b>Details:</b> ${message || 'Device unreachable over IPsec VPN tunnel'}
+${isOnline ? `<b>Details:</b> Device recovered and is back ONLINE!` : `<b>CPU:</b> ${cpu}% | <b>MEM:</b> ${mem}%\n<b>Details:</b> ${message || 'Device unreachable over IPsec VPN tunnel'}`}
 <b>Time:</b> <code>${new Date().toLocaleString()}</code>
 ───────────────────────
-<i>NetMonitor Automated Alert System</i>
+<i>NetMonitor Automated Monitoring System</i>
 `.trim();
 
     const payload = JSON.stringify({
