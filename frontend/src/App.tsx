@@ -1089,7 +1089,6 @@ function App() {
             </div>
 
           </div>
-        )
         ) : activeTab === 'nodes' ? (
           <div className="flex-1 p-6 lg:p-8 space-y-6">
             <div className="glass-panel border border-slate-800 rounded-3xl p-6">
