@@ -1,5 +1,8 @@
 const snmp = require('net-snmp');
 
+// In-memory store to track previous traffic octets for calculating real-time Mbps speed
+const trafficOctetMap = new Map();
+
 /**
  * Polls SNMP metrics from a target network device using v2c
  * Query Cisco device telemetry metrics via SNMP v2c
