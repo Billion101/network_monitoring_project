@@ -80,12 +80,13 @@ const BASELINES = {
   pc: { cpu: 20, mem: 35, latency: 3, trafficIn: 280, trafficOut: 110 }
 };
 
-// Periodic telemetry loop polling real devices via SNMP with simulation fallback
+// Periodic telemetry loop polling real devices via SNMP in PARALLEL with simulation fallback
 const runTelemetryLoop = async () => {
   try {
     const devicesList = await DeviceModel.getAllDevices();
 
-    for (const dev of devicesList) {
+    // Poll all devices concurrently in parallel using Promise.all
+    await Promise.all(devicesList.map(async (dev) => {
       const base = BASELINES[dev.type] || { cpu: 20, mem: 30, latency: 5, trafficIn: 200, trafficOut: 100 };
       let cpu = 0;
       let mem = 0;
@@ -173,7 +174,7 @@ const runTelemetryLoop = async () => {
 
         await LogModel.insertSyslog(dev.id, facility, severity, logsMap[severity]);
       }
-    }
+    }));
 
     // Load fresh data sets to broadcast
     const freshDevices = await DeviceModel.getAllDevices();
@@ -203,7 +204,6 @@ server.listen(PORT, () => {
     broadcast(event);
   });
 
-  // Launch periodic telemetry polling loop (every 5 seconds)
-  setInterval(runTelemetryLoop, 5000);
+  // Launch periodic telemetry polling loop (every 2 seconds for high-speed live demo)
+  setInterval(runTelemetryLoop, 2000);
 });
-
