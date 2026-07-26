@@ -31,7 +31,7 @@ const pollDeviceMetrics = (ipAddress, community = process.env.SNMP_COMMUNITY || 
     const options = {
       port: 161,
       retries: 1,
-      timeout: 800, // Reduced from 2500ms to 800ms for ultra-fast response
+      timeout: 1500, // 1500ms optimal timeout for stable VPN polling without false timeouts
       backoff: 1.0,
       transport: "udp4",
       version: snmp.Version2c
