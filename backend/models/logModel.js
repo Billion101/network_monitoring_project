@@ -39,6 +39,7 @@ const LogModel = {
     `;
     const result = await db.query(queryText, [limit]);
     return result.rows;
+
   },
 
   insertSyslog: async (devId, facility, severity, message) => {
