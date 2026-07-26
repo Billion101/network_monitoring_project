@@ -80,9 +80,13 @@ const BASELINES = {
   pc: { cpu: 20, mem: 35, latency: 3, trafficIn: 280, trafficOut: 110 }
 };
 
+let telemetryCycleCount = 0;
+
 // Periodic telemetry loop polling real devices via SNMP in PARALLEL with simulation fallback
 const runTelemetryLoop = async () => {
   try {
+    telemetryCycleCount++;
+    const shouldSaveToDb = (telemetryCycleCount % 5 === 0); // Write to status_logs DB every 10 seconds (80% DB write reduction)
     const devicesList = await DeviceModel.getAllDevices();
 
     // Poll all devices concurrently in parallel using Promise.all
@@ -133,8 +137,10 @@ const runTelemetryLoop = async () => {
         }
       }
 
-      // Append health telemetry status log entry
-      await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
+      // Append health telemetry status log entry (only every 10s or when device is offline to keep DB slim)
+      if (shouldSaveToDb || status === 'offline' || cpu > 85) {
+        await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
+      }
 
       // Trigger Telegram notification ONLY for core infrastructure devices (firewall, core_switch, switch)
       const isInfrastructure = ['firewall', 'core_switch', 'switch'].includes(dev.type);
@@ -203,6 +209,10 @@ server.listen(PORT, () => {
   initSyslogServer(process.env.SYSLOG_PORT || 514, (event) => {
     broadcast(event);
   });
+
+  // Prune old status_logs on server start and run maintenance hourly (keeps DB slim & fast)
+  LogModel.pruneOldStatusLogs(24);
+  setInterval(() => LogModel.pruneOldStatusLogs(24), 3600000);
 
   // Launch periodic telemetry polling loop (every 2 seconds for high-speed live demo)
   setInterval(runTelemetryLoop, 2000);

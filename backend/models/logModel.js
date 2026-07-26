@@ -49,6 +49,20 @@ const LogModel = {
     `;
     const result = await db.query(queryText, [devId, facility, severity, message]);
     return result.rows[0];
+  },
+
+  pruneOldStatusLogs: async (hours = 24) => {
+    try {
+      const queryText = `DELETE FROM status_logs WHERE checked_at < NOW() - (INTERVAL '1 hour' * $1)`;
+      const result = await db.query(queryText, [hours]);
+      if (result.rowCount > 0) {
+        console.log(`[DB MAINTENANCE] Pruned ${result.rowCount} old status_logs records older than ${hours} hours.`);
+      }
+      return result.rowCount;
+    } catch (err) {
+      console.error('Error pruning old status logs:', err.message);
+      return 0;
+    }
   }
 };
 
