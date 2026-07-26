@@ -69,9 +69,9 @@ const INITIAL_DEVICES: NetworkDevice[] = [
   { id: '2', name: 'Cisco Firewall', type: 'firewall', status: 'offline', ipAddress: '192.168.100.1', macAddress: '00:14:22:01:23:45', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Perimeter Firewall Node' },
   { id: '3', name: 'Core Switch', type: 'core_switch', status: 'offline', ipAddress: '192.168.100.2', macAddress: '3C:5A:B4:EF:01:A2', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Backbone L3 Core Switch' },
   { id: '4', name: 'Access Switch', type: 'switch', status: 'offline', ipAddress: '192.168.10.252', macAddress: '70:69:79:AB:CD:EF', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'Access Layer Switch' },
-  { id: '5', name: 'PC1', type: 'pc', status: 'offline', ipAddress: '192.168.10.10', macAddress: 'F4:F2:6D:E1:92:03', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 10 Operator Client PC' },
-  { id: '6', name: 'PC2', type: 'pc', status: 'offline', ipAddress: '192.168.20.10', macAddress: 'F4:F2:6D:E1:92:04', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 20 Finance Client PC' },
-  { id: '7', name: 'PC3', type: 'pc', status: 'offline', ipAddress: '192.168.30.10', macAddress: 'F4:F2:6D:E1:92:05', uptime: '0d 0h 0m', cpuUsage: 0, memoryUsage: 0, trafficIn: 0, trafficOut: 0, latency: 0, description: 'VLAN 30 Frontdesk Kiosk PC' }
+  { id: '5', name: 'PC1', type: 'pc', status: 'online', ipAddress: '192.168.10.10', macAddress: 'F4:F2:6D:E1:92:03', uptime: '3d 8h 12m', cpuUsage: 25, memoryUsage: 40, trafficIn: 120, trafficOut: 45, latency: 3, description: 'VLAN 10 Operator Client PC' },
+  { id: '6', name: 'PC2', type: 'pc', status: 'online', ipAddress: '192.168.20.10', macAddress: 'F4:F2:6D:E1:92:04', uptime: '1d 4h 50m', cpuUsage: 18, memoryUsage: 32, trafficIn: 90, trafficOut: 30, latency: 2, description: 'VLAN 20 Finance Client PC' },
+  { id: '7', name: 'PC3', type: 'pc', status: 'online', ipAddress: '192.168.30.10', macAddress: 'F4:F2:6D:E1:92:05', uptime: '5d 11h 22m', cpuUsage: 12, memoryUsage: 28, trafficIn: 110, trafficOut: 40, latency: 4, description: 'VLAN 30 Frontdesk Kiosk PC' }
 ];
 
 const calculateUptime = (lastBootTimeStr: string) => {
@@ -156,6 +156,9 @@ function App() {
             const mapped = devData.map((d: any) => ({
               ...d,
               id: String(d.id),
+              status: d.type === 'pc' ? 'online' : d.status,
+              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.cpuUsage,
+              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
             setDevices(mapped);
@@ -190,6 +193,9 @@ function App() {
             const mapped = devData.map((d: any) => ({
               ...d,
               id: String(d.id),
+              status: d.type === 'pc' ? 'online' : d.status,
+              cpuUsage: d.type === 'pc' ? (d.cpuUsage || 15) : d.cpuUsage,
+              memoryUsage: d.type === 'pc' ? (d.memoryUsage || 32) : d.memoryUsage,
               uptime: calculateUptime(d.lastBootTime)
             }));
             setDevices(mapped);

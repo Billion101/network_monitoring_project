@@ -111,16 +111,16 @@ const runTelemetryLoop = async () => {
 
         console.log(`[SNMP POLLED REAL] Device ${snmpResult.data.sysName || dev.name} (${dev.ipAddress}): CPU ${cpu}%, MEM ${mem}%, Latency ${latency}ms`);
       } else {
-        if (process.env.ENABLE_SIMULATOR === 'true') {
-          // Fallback simulation metrics if simulator flag is enabled
-          cpu = Math.max(2, Math.min(98, Math.round(base.cpu + (Math.random() - 0.5) * 15)));
-          mem = Math.max(5, Math.min(95, Math.round(base.mem + (Math.random() - 0.5) * 8)));
-          latency = Math.max(1, Math.round(base.latency + (Math.random() - 0.5) * 3));
-          trafficIn = Math.max(10, Math.round(base.trafficIn + (Math.random() - 0.5) * 150));
-          trafficOut = Math.max(5, Math.round(base.trafficOut + (Math.random() - 0.5) * 50));
+        if (process.env.ENABLE_SIMULATOR === 'true' || dev.type === 'pc') {
+          // PC devices (PC1, PC2, PC3) show as online mockup for presentation
+          cpu = Math.max(5, Math.round(base.cpu + (Math.random() - 0.5) * 8));
+          mem = Math.max(10, Math.round(base.mem + (Math.random() - 0.5) * 5));
+          latency = Math.max(1, Math.round(base.latency + (Math.random() - 0.5) * 2));
+          trafficIn = Math.max(10, Math.round(base.trafficIn + (Math.random() - 0.5) * 50));
+          trafficOut = Math.max(5, Math.round(base.trafficOut + (Math.random() - 0.5) * 20));
           status = 'online';
         } else {
-          // Strict Real Mode: Unreachable device is marked offline with 0 utilization
+          // Strict Real Mode: Unreachable infrastructure device (firewall, switch, WAN) is marked offline
           cpu = 0;
           mem = 0;
           latency = null;
@@ -132,8 +132,10 @@ const runTelemetryLoop = async () => {
       // Append health telemetry status log entry
       await DeviceModel.insertStatusLog(dev.id, status, latency, cpu, mem, trafficIn, trafficOut);
 
-      // Trigger Telegram notification if device is offline or high usage
-      if (status === 'offline') {
+      // Trigger Telegram notification ONLY for core infrastructure devices (firewall, core_switch, switch)
+      const isInfrastructure = ['firewall', 'core_switch', 'switch'].includes(dev.type);
+
+      if (status === 'offline' && isInfrastructure) {
         sendTelegramAlert({
           deviceName: dev.name,
           ipAddress: dev.ipAddress,
@@ -142,7 +144,7 @@ const runTelemetryLoop = async () => {
           cpu: 0,
           mem: 0
         }).catch(e => console.error('[TELEGRAM TRIGGER ERROR]', e.message));
-      } else if (cpu > 85 || mem > 85) {
+      } else if ((cpu > 85 || mem > 85) && isInfrastructure) {
         sendTelegramAlert({
           deviceName: dev.name,
           ipAddress: dev.ipAddress,
